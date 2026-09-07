@@ -1,0 +1,117 @@
+/* Doctor Pages Styles - Premium Design */
+
+.doctor-dashboard-page {
+  min-height: 100vh;
+  padding: 1rem;
+  padding-bottom: 5rem;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.875rem;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 640px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.today-appointments {
+  background-color: var(--bg-card);
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-xs);
+  transition: background-color var(--transition-base), border-color var(--transition-base);
+}
+
+.today-appointments .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.today-appointments .section-header button {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.today-appointments .section-header button:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.doctor-appointments-page {
+  min-height: 100vh;
+  padding: 1rem;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.appointment-card {
+  background-color: var(--bg-card);
+  padding: 1.25rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-xs);
+  margin-bottom: 0.875rem;
+  transition: background-color var(--transition-base), border-color var(--transition-base);
+}
+
+.appointment-time {
+  text-align: center;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--primary-subtle);
+  border-radius: var(--radius-md);
+  margin-bottom: 0.75rem;
+}
+
+.appointment-time .time {
+  font-weight: 600;
+  font-size: 1.0625rem;
+  color: var(--primary-color);
+}
+
+.appointment-patient {
+  margin-bottom: 0.75rem;
+}
+
+.appointment-patient h4 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.appointment-patient p {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.appointment-status {
+  margin-bottom: 0.75rem;
+}
+
+.appointment-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-small {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  min-height: 36px;
+}

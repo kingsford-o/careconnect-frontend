@@ -1,0 +1,65 @@
+/* BackToHomeButton Component Styles - Premium Design */
+
+.back-to-home-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  min-height: 44px;
+  animation: slideInDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 1.5rem;
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.back-to-home-button:hover {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-dark);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.back-to-home-button:active {
+  transform: translateY(0);
+}
+
+.back-to-home-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: var(--primary-color);
+}
+
+.back-arrow {
+  font-size: 1.125rem;
+  transition: transform var(--transition-base);
+}
+
+.back-to-home-button:hover .back-arrow {
+  transform: translateX(-2px);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .back-to-home-button {
+    width: 100%;
+    justify-content: center;
+  }
+}

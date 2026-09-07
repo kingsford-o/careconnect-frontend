@@ -1,0 +1,619 @@
+/* ============================================
+   CareConnect Admin Dashboard Premium Styles
+   ============================================ */
+
+/* Admin Dashboard */
+.admin-dashboard {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-header p {
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.stat-card-pending .stat-icon {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.stat-card-approved .stat-icon {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.stat-card-rejected .stat-icon {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.stat-card-patients .stat-icon {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.stat-card-appointments .stat-icon {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Admin Doctors Page */
+.admin-doctors-page {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.page-header p {
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.doctors-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.doctor-card-admin {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.doctor-card-admin:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.doctor-card-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.doctor-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.doctor-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.doctor-info {
+  flex: 1;
+}
+
+.doctor-info h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.doctor-info p {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.doctor-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.doctor-card-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.detail-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.detail-value {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* Admin Doctor Review Page */
+.admin-doctor-review-page {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.doctor-review-content {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.doctor-profile-section {
+  padding: 2rem;
+}
+
+.doctor-profile-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.doctor-avatar-large {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.doctor-avatar-large img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder-large {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 3rem;
+  font-weight: 600;
+}
+
+.doctor-profile-info {
+  flex: 1;
+}
+
+.doctor-profile-info h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.doctor-specialty {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.doctor-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.meta-divider {
+  color: var(--border-color);
+}
+
+.doctor-review-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.doctor-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.detail-section {
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.detail-section-full {
+  grid-column: 1 / -1;
+}
+
+.detail-section h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.doctor-bio {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.status-message {
+  padding: 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.status-approved {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.status-rejected {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.rejection-reason {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+.rejection-reason-full {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+}
+
+/* Verification Status Component */
+.verification-section {
+  margin-bottom: 2rem;
+}
+
+.verification-status {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+}
+
+.verification-status-pending {
+  border-left: 4px solid #f59e0b;
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.verification-status-approved {
+  border-left: 4px solid #10b981;
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.verification-status-rejected {
+  border-left: 4px solid #ef4444;
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.verification-status-icon {
+  flex-shrink: 0;
+  color: var(--text-primary);
+}
+
+.verification-status-pending .verification-status-icon {
+  color: #f59e0b;
+}
+
+.verification-status-approved .verification-status-icon {
+  color: #10b981;
+}
+
+.verification-status-rejected .verification-status-icon {
+  color: #ef4444;
+}
+
+.verification-status-content {
+  flex: 1;
+}
+
+.verification-status-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.verification-status-header h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.verification-status-content p {
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+}
+
+.rejection-reason-box {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  margin-top: 0.75rem;
+}
+
+/* Confirm Dialog */
+.confirm-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.confirm-dialog {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.confirm-dialog-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.confirm-dialog-body {
+  margin-bottom: 1.5rem;
+}
+
+.confirm-dialog-body p {
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.confirm-dialog-body .form-group {
+  margin-top: 1rem;
+}
+
+.confirm-dialog-body label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.confirm-dialog-body textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.confirm-dialog-body textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.confirm-dialog-footer {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+/* Dark Mode */
+.dark-mode .admin-dashboard,
+.dark-mode .admin-doctors-page,
+.dark-mode .admin-doctor-review-page {
+  background: var(--bg-primary);
+}
+
+.dark-mode .stat-card,
+.dark-mode .doctor-card-admin,
+.dark-mode .doctor-review-content,
+.dark-mode .verification-status {
+  background: var(--card-bg-dark);
+  border-color: var(--border-color-dark);
+}
+
+.dark-mode .detail-section {
+  background: var(--bg-secondary-dark);
+}
+
+.dark-mode .confirm-dialog {
+  background: var(--card-bg-dark);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-dashboard,
+  .admin-doctors-page,
+  .admin-doctor-review-page {
+    padding: 1rem 1rem 5rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .doctor-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .doctor-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .doctor-card-details {
+    grid-template-columns: 1fr;
+  }
+
+  .doctor-profile-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .doctor-review-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .doctor-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .verification-status {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .verification-status-header {
+    justify-content: center;
+    flex-direction: column;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+}

@@ -1,0 +1,105 @@
+/* Footer Component Styles - Premium Design */
+
+.app-footer {
+  background-color: var(--bg-primary);
+  border-top: 1px solid var(--border-color);
+  padding: 2rem 1.5rem;
+  transition: background-color var(--transition-base), border-color var(--transition-base);
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.footer-links {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.footer-link {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: color var(--transition-base);
+  font-family: var(--font-sans);
+  padding: 0.25rem;
+}
+
+.footer-link:hover {
+  color: var(--primary-color);
+}
+
+.footer-link:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.footer-branding {
+  text-align: center;
+}
+
+.footer-logo {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.625rem;
+}
+
+.footer-logo-icon {
+  flex-shrink: 0;
+}
+
+.footer-made-with {
+  font-size: 0.9375rem;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.footer-made-with .heart {
+  color: #EF4444;
+  display: inline-block;
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.footer-copyright {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .footer-links {
+    gap: 1rem;
+  }
+
+  .footer-link {
+    font-size: 0.8125rem;
+  }
+
+  .footer-made-with {
+    font-size: 0.875rem;
+  }
+}

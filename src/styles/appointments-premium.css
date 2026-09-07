@@ -1,0 +1,237 @@
+/* ============================================
+   PREMIUM APPOINTMENTS PAGE STYLES
+   Modern appointments management
+   ============================================ */
+
+.appointments-page-premium {
+  min-height: 100vh;
+  background: var(--surface-secondary);
+  padding: 2rem;
+}
+
+.appointments-header {
+  max-width: 1000px;
+  margin: 0 auto 2rem;
+}
+
+.appointments-header h1 {
+  margin-bottom: 0.5rem;
+}
+
+.appointments-header p {
+  color: var(--text-secondary);
+}
+
+/* Tabs */
+.tabs-premium {
+  max-width: 1000px;
+  margin: 0 auto 2rem;
+  display: flex;
+  gap: 0.5rem;
+  background: var(--surface-primary);
+  padding: 0.5rem;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-light);
+}
+
+.tab-premium {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  background: none;
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast) var(--ease-out);
+}
+
+.tab-premium:hover {
+  color: var(--text-primary);
+  background: var(--surface-secondary);
+}
+
+.tab-premium.active {
+  background: var(--primary-600);
+  color: white;
+}
+
+/* Loading State */
+.loading-state {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* Appointments List */
+.appointments-list-premium {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.appointment-card-premium {
+  background: var(--surface-primary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-2xl);
+  padding: 1.5rem;
+  transition: all var(--transition-normal) var(--ease-out);
+}
+
+.appointment-card-premium:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-medium);
+}
+
+.appointment-header-premium {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.appointment-doctor {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.doctor-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+}
+
+.appointment-doctor h3 {
+  margin: 0;
+}
+
+.appointment-doctor p {
+  margin: 0.25rem 0 0;
+  color: var(--text-secondary);
+}
+
+.status-badge {
+  padding: 0.375rem 0.875rem;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+}
+
+.appointment-details-premium {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+}
+
+.detail-item svg {
+  flex-shrink: 0;
+}
+
+.appointment-actions-premium {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.appointment-actions-premium .btn {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* Dark Mode Overrides */
+.dark-mode .appointments-page-premium {
+  background: var(--surface-primary);
+}
+
+.dark-mode .tabs-premium {
+  background: var(--surface-secondary);
+  border-color: var(--border-medium);
+}
+
+.dark-mode .tab-premium:hover {
+  background: var(--surface-tertiary);
+}
+
+.dark-mode .tab-premium.active {
+  background: var(--primary-600);
+}
+
+.dark-mode .appointment-card-premium {
+  background: var(--surface-secondary);
+  border-color: var(--border-medium);
+}
+
+.dark-mode .appointment-card-premium:hover {
+  border-color: var(--border-dark);
+}
+
+.dark-mode .appointment-details-premium {
+  border-color: var(--border-medium);
+}
+
+.dark-mode .detail-item {
+  color: var(--text-secondary);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .appointments-page-premium {
+    padding: 1rem;
+  }
+  
+  .tabs-premium {
+    flex-direction: column;
+  }
+  
+  .appointment-header-premium {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .appointment-details-premium {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .appointment-actions-premium {
+    flex-direction: column;
+  }
+  
+  .appointment-actions-premium .btn {
+    width: 100%;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .appointment-card-premium {
+    transition: none;
+  }
+  
+  .appointment-card-premium:hover {
+    box-shadow: none;
+  }
+}
