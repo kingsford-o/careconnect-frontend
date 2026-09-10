@@ -1,12 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createClient } from '@supabase/supabase-js';
+import supabase from '../../lib/supabaseClient';
 import { useAuthStore } from '../../store/authStore';
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
 
 export default function OAuthCallbackPage() {
   const navigate = useNavigate();
@@ -25,6 +20,9 @@ export default function OAuthCallbackPage() {
       const hash = window.location.hash || '';
       const hashParams = new URLSearchParams(hash.replace(/^#/, ''));
 
+      let finalSession = null;
+      let resolvedRole = 'patient';
+
       if (hashParams.has('access_token') && hashParams.has('refresh_token')) {
         const { data, error } = await supabase.auth.setSession({
           access_token: hashParams.get('access_token'),
@@ -36,11 +34,35 @@ export default function OAuthCallbackPage() {
           throw new Error('No session found in OAuth callback hash');
         }
 
-        const finalSession = data.session;
+        finalSession = data.session;
+      } else {
+        // Exchange the code for a session using Supabase
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-        const requestedRole = sessionStorage.getItem('signup_role') || 'patient';
+        if (sessionError || !session) {
+          // Try to get session from URL hash
+          const { data, error } = await supabase.auth.getSessionFromUrl();
+          if (error) throw error;
+          if (!data.session) {
+            throw new Error('No session found in OAuth callback');
+          }
+          finalSession = data.session;
+        } else {
+          finalSession = session;
+        }
+      }
 
-        // Check if user exists in our backend
+      if (!finalSession) {
+        throw new Error('Failed to establish session');
+      }
+
+      const requestedRole = sessionStorage.getItem('signup_role') || 'patient';
+
+      // Try to call backend with timeout, but don't fail if unavailable
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/oauth/callback`, {
           method: 'POST',
           headers: {
@@ -52,73 +74,23 @@ export default function OAuthCallbackPage() {
             role: requestedRole,
             accessToken: finalSession.access_token,
           }),
+          signal: controller.signal,
         });
 
-        const callbackData = await response.json();
+        clearTimeout(timeoutId);
 
-        if (!response.ok) {
-          throw new Error(callbackData.error || 'OAuth callback failed');
-        }
-
-        const resolvedRole = (callbackData.role || requestedRole || 'patient').toLowerCase();
-
-        if (finalSession.access_token) {
-          localStorage.setItem('auth_token', finalSession.access_token);
-        }
-        sessionStorage.removeItem('signup_role');
-
-        await hydrate();
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-        if (resolvedRole === 'doctor') {
-          navigate('/doctor/dashboard', { replace: true });
-        } else if (resolvedRole === 'admin') {
-          navigate('/admin/dashboard', { replace: true });
+        if (response.ok) {
+          const callbackData = await response.json();
+          resolvedRole = (callbackData.role || requestedRole || 'patient').toLowerCase();
         } else {
-          navigate('/patient/home', { replace: true });
+          console.log('Backend callback failed, using local role');
+          resolvedRole = requestedRole;
         }
-        return;
+      } catch (fetchError) {
+        // Backend unavailable - use local role from session storage
+        console.log('Backend unavailable, using local session');
+        resolvedRole = requestedRole;
       }
-
-      // Exchange the code for a session using Supabase
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-      let finalSession = session;
-
-      if (sessionError || !session) {
-        // Try to get session from URL hash
-        const { data, error } = await supabase.auth.getSessionFromUrl();
-        if (error) throw error;
-        if (!data.session) {
-          throw new Error('No session found in OAuth callback');
-        }
-        finalSession = data.session;
-      }
-
-      // Prefer the backend-resolved user role over any stale local value.
-      const requestedRole = sessionStorage.getItem('signup_role') || 'patient';
-
-      // Check if user exists in our backend
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/oauth/callback`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: finalSession.user.email,
-          fullName: finalSession.user.user_metadata?.full_name || finalSession.user.email.split('@')[0],
-          role: requestedRole,
-          accessToken: finalSession.access_token,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'OAuth callback failed');
-      }
-
-      const resolvedRole = (data.role || requestedRole || 'patient').toLowerCase();
 
       // Store auth token
       if (finalSession.access_token) {
@@ -126,13 +98,13 @@ export default function OAuthCallbackPage() {
       }
       sessionStorage.removeItem('signup_role');
 
-      // Hydrate the auth store with the validated session
+      // Hydrate the auth store with the session
       await hydrate();
 
       // Wait a moment to ensure state is updated
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Navigate based on the actual backend role to avoid stale role redirects.
+      // Navigate based on role
       if (resolvedRole === 'doctor') {
         navigate('/doctor/dashboard', { replace: true });
       } else if (resolvedRole === 'admin') {
@@ -142,7 +114,7 @@ export default function OAuthCallbackPage() {
       }
     } catch (err) {
       console.error('❌ OAuth callback error:', err);
-      setError(err.message);
+      setError(err.message || 'Authentication failed. Please try again.');
       setTimeout(() => {
         navigate('/auth/login');
       }, 3000);
