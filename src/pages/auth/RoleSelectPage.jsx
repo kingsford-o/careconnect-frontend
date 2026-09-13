@@ -8,8 +8,8 @@ export default function RoleSelectPage() {
 
   const handleRoleSelect = async (role) => {
     await resetForRoleSelection();
-    sessionStorage.setItem('signup_role', role);
-    navigate(role === 'admin' ? '/auth/login?role=admin' : '/auth/signup');
+    // NO STORAGE - Pass role through URL params
+    navigate(role === 'admin' ? '/auth/login?role=admin' : `/auth/signup?role=${role}`);
   };
 
   return (

@@ -807,7 +807,7 @@
    RESPONSIVE ADJUSTMENTS
    ============================================ */
 
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .doctor-dashboard-premium {
     padding: 1rem 1rem 5rem;
   }
@@ -815,28 +815,56 @@
   .dashboard-main {
     padding: 1rem;
   }
-  
+
   .dashboard-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
-  
+
+  .dashboard-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .dashboard-header p {
+    font-size: 0.875rem;
+  }
+
   .stats-grid-premium,
   .metrics-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
-  
+
+  .stat-card-premium,
+  .metric-card {
+    padding: 1rem;
+  }
+
+  .stat-value-premium {
+    font-size: 1.75rem;
+  }
+
+  .stat-label-premium {
+    font-size: 0.75rem;
+  }
+
   .section-header {
     flex-direction: column;
     align-items: flex-start;
+    gap: 0.5rem;
   }
-  
+
+  .section-header h2 {
+    font-size: 1.25rem;
+  }
+
   .appointment-card-premium {
     flex-direction: column;
     align-items: flex-start;
+    padding: 1rem;
   }
-  
+
   .appointment-time {
     flex-direction: row;
     border-right: none;
@@ -845,14 +873,62 @@
     padding-bottom: 0.5rem;
     width: 100%;
   }
-  
+
   .appointment-patient {
     width: 100%;
   }
-  
+
   .appointment-actions {
     width: 100%;
     justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .action-btn {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .profile-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .profile-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .profile-btn {
+    width: 100%;
+  }
+
+  .chart-container {
+    padding: 1rem;
+  }
+
+  .chart-bar {
+    min-height: 20px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .doctor-dashboard-premium {
+    padding: 1.5rem;
+  }
+
+  .stats-grid-premium {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-sidebar {
+    width: 240px;
   }
 }
 

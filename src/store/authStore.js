@@ -14,20 +14,22 @@ export const useAuthStore = create(
   (set, get) => ({
     user: null,
     isAuthenticated: false,
-    loading: true, // Start as true for hydration
+    loading: false, // Start as false - no automatic hydration
     doctorProfile: null,
     profileComplete: false, // Default to false, must be explicitly set true
-    isHydrated: false,
+    isHydrated: true, // Always hydrated since we don't auto-hydrate
 
       signup: async (credentials) => {
         set({ loading: true });
         try {
-          // Get the role selected for this browser session.
-          const role = sessionStorage.getItem('signup_role') || 'patient';
+          // Get the role from credentials (no session storage)
+          const role = credentials.role || 'patient';
 
-          // Clear all stale auth data before signup
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('auth-storage');
+          // NO STORAGE - Clear everything
+          if (typeof window !== 'undefined') {
+            localStorage.clear();
+            sessionStorage.clear();
+          }
 
           // Prepare request body - MATCH BACKEND EXACTLY
           const payload = {
@@ -54,7 +56,7 @@ export const useAuthStore = create(
           if (!response.ok) {
             const error = await response.json();
             console.error('❌ Signup error:', error);
-            
+
             // Provide more specific error messages
             if (error.error?.includes('duplicate key') || error.error?.includes('unique constraint')) {
               if (error.error?.includes('users_pkey')) {
@@ -64,21 +66,14 @@ export const useAuthStore = create(
             } else if (error.error?.includes('users_pkey')) {
               throw new Error('Database error occurred. Please try again or clear your browser cache.');
             }
-            
+
             throw new Error(error.error || 'Signup failed');
           }
 
           const data = await response.json();
           console.log('✅ Signup success:', data);
 
-          // Store auth token if provided
-          if (data.session?.access_token) {
-            localStorage.setItem('auth_token', data.session.access_token);
-          }
-          localStorage.removeItem('admin_session');
-          sessionStorage.removeItem('signup_role');
-
-          // Store user data
+          // NO STORAGE - Store only in memory
           set({
             user: {
               id: data.userId,
@@ -126,13 +121,7 @@ export const useAuthStore = create(
           const data = await response.json();
           console.log('✅ Login success:', data);
 
-          // Store auth token
-          if (data.session?.access_token) {
-            localStorage.setItem('auth_token', data.session.access_token);
-          }
-          localStorage.removeItem('admin_session');
-          sessionStorage.removeItem('signup_role');
-
+          // NO STORAGE - Store only in memory
           set({
             user: {
               id: data.user.id,
@@ -159,8 +148,14 @@ export const useAuthStore = create(
       adminLogin: async (passkey) => {
         set({ loading: true });
         try {
-          // Prevent an older Supabase session from winning during hydration.
+          // Clear any existing Supabase session
           await supabase.auth.signOut();
+
+          // NO STORAGE - Clear everything
+          if (typeof window !== 'undefined') {
+            localStorage.clear();
+            sessionStorage.clear();
+          }
 
           const response = await fetch(
             `${import.meta.env.VITE_API_URL}/api/auth/admin/login`,
@@ -176,12 +171,7 @@ export const useAuthStore = create(
             throw new Error(data.error || 'Admin authentication failed');
           }
 
-          if (data.session?.access_token) {
-            localStorage.setItem('auth_token', data.session.access_token);
-          }
-          localStorage.setItem('admin_session', 'true');
-          sessionStorage.removeItem('signup_role');
-
+          // NO STORAGE - Store only in memory
           set({
             user: data.user,
             isAuthenticated: true,
@@ -199,13 +189,11 @@ export const useAuthStore = create(
       signInWithGoogle: async (role = 'patient') => {
         set({ loading: true });
         try {
-          // Store the intended role for after OAuth callback
-          sessionStorage.setItem('signup_role', role);
-
+          // NO STORAGE - Pass role through URL params instead
           const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-              redirectTo: `${window.location.origin}/auth/callback`,
+              redirectTo: `${window.location.origin}/auth/callback?role=${role}`,
               skipBrowserRedirect: false,
             },
           });
@@ -224,10 +212,11 @@ export const useAuthStore = create(
 
       resetForRoleSelection: async () => {
         await supabase.auth.signOut();
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('signup_role');
-        sessionStorage.removeItem('signup_role');
-        sessionStorage.removeItem('auth_redirect');
+        // NO STORAGE - Clear everything
+        if (typeof window !== 'undefined') {
+          localStorage.clear();
+          sessionStorage.clear();
+        }
         set({
           user: null,
           isAuthenticated: false,
@@ -328,12 +317,12 @@ export const useAuthStore = create(
 
       logout: async () => {
         await supabase.auth.signOut();
-        // Clear all local storage
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('admin_session');
-        sessionStorage.removeItem('signup_role');
-        localStorage.removeItem('signup_role');
-        
+        // NO STORAGE - Clear everything
+        if (typeof window !== 'undefined') {
+          localStorage.clear();
+          sessionStorage.clear();
+        }
+
         // Reset state
         set({
           user: null,
@@ -342,7 +331,7 @@ export const useAuthStore = create(
           profileComplete: false,
           isHydrated: true,
         });
-        
+
         // Use replace to prevent browser back button from returning to protected routes
         if (typeof window !== 'undefined') {
           window.location.replace('/');
@@ -350,104 +339,24 @@ export const useAuthStore = create(
       },
 
       hydrate: async () => {
-        try {
-          // Check current Supabase session
-          const { data: { session }, error } = await supabase.auth.getSession();
-
-          if (error) {
-            console.error('Session check error:', error);
-            set({ loading: false, isHydrated: true });
-            return;
-          }
-
-          const storedToken = localStorage.getItem('auth_token');
-          const accessToken = (localStorage.getItem('admin_session') === 'true' || isAdminToken(storedToken))
-            ? storedToken
-            : session?.access_token || storedToken;
-
-          if (accessToken) {
-            // Try to validate with backend, but don't fail if backend is unavailable
-            try {
-              const controller = new AbortController();
-              const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
-
-              const response = await fetch(
-                `${import.meta.env.VITE_API_URL}/api/auth/validate`,
-                {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`,
-                  },
-                  signal: controller.signal,
-                }
-              );
-
-              clearTimeout(timeoutId);
-
-              if (response.ok) {
-                const data = await response.json();
-                set({
-                  user: data.user,
-                  isAuthenticated: true,
-                  doctorProfile: data.doctorProfile || null,
-                  profileComplete: data.profileComplete !== undefined ? data.profileComplete : false,
-                  loading: false,
-                  isHydrated: true,
-                });
-                localStorage.setItem('auth_token', accessToken);
-                return;
-              }
-            } catch (fetchError) {
-              // Backend validation failed or timed out - continue with local session
-              console.log('Backend validation unavailable, using local session');
-            }
-
-            // If backend validation fails, try to get user data from Supabase session
-            if (session?.user) {
-              set({
-                user: {
-                  id: session.user.id,
-                  email: session.user.email,
-                  full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
-                  role: session.user.user_metadata?.role || 'patient',
-                  avatar: session.user.user_metadata?.avatar || '🐱',
-                },
-                isAuthenticated: true,
-                doctorProfile: null,
-                profileComplete: false,
-                loading: false,
-                isHydrated: true,
-              });
-              localStorage.setItem('auth_token', session.access_token);
-            } else if (storedToken) {
-              // Fallback: keep user authenticated with stored token
-              // This allows the app to work even if backend is temporarily down
-              set({
-                user: {
-                  id: 'local',
-                  email: 'user@local',
-                  full_name: 'User',
-                  role: 'patient',
-                  avatar: '🐱',
-                },
-                isAuthenticated: true,
-                doctorProfile: null,
-                profileComplete: false,
-                loading: false,
-                isHydrated: true,
-              });
-            } else {
-              set({ loading: false, isHydrated: true });
-            }
-          } else {
-            // No session
-            set({ loading: false, isHydrated: true });
-          }
-        } catch (error) {
-          console.error('Hydration error:', error);
-          set({ loading: false, isHydrated: true });
+        // NO AUTOMATIC HYDRATION - Always start logged out
+        // NO STORAGE - Clear everything on load
+        if (typeof window !== 'undefined') {
+          localStorage.clear();
+          sessionStorage.clear();
         }
+
+        // Sign out from Supabase
+        await supabase.auth.signOut();
+
+        set({
+          user: null,
+          isAuthenticated: false,
+          doctorProfile: null,
+          profileComplete: false,
+          loading: false,
+          isHydrated: true,
+        });
       },
     })
 );

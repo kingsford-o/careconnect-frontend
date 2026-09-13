@@ -59,7 +59,7 @@ export default function SignupPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -70,7 +70,8 @@ export default function SignupPage() {
     setError('');
 
     try {
-      await signup(formData);
+      // Pass role directly in form data
+      await signup({ ...formData, role });
       // Navigation will happen automatically via RootRoute after hydration
       navigate('/', { replace: true });
     } catch (err) {
@@ -82,14 +83,17 @@ export default function SignupPage() {
 
   const handleGoogleSignIn = async () => {
     try {
-      const role = sessionStorage.getItem('signup_role') || 'patient';
+      // Get role from URL params or default to patient
+      const urlParams = new URLSearchParams(window.location.search);
+      const role = urlParams.get('role') || 'patient';
       await signInWithGoogle(role);
     } catch (error) {
       console.error('Google sign in error:', error);
     }
   };
 
-  const role = sessionStorage.getItem('signup_role') || 'patient';
+  const urlParams = new URLSearchParams(window.location.search);
+  const role = urlParams.get('role') || 'patient';
 
   return (
     <div className="auth-page-premium signup-page-premium">

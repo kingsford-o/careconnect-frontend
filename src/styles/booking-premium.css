@@ -373,21 +373,110 @@
   .booking-page-premium {
     padding: 1rem;
   }
-  
+
   .booking-form-premium {
     padding: 1.5rem;
   }
-  
+
+  .booking-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .booking-header p {
+    font-size: 0.875rem;
+  }
+
   .time-slots-premium {
     grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
   }
-  
+
+  .time-slot-premium {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.875rem;
+  }
+
   .consultation-type-premium {
     grid-template-columns: 1fr;
   }
-  
+
+  .type-card-premium {
+    padding: 1rem;
+  }
+
+  .type-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .type-content h3 {
+    font-size: 1rem;
+  }
+
+  .type-content p {
+    font-size: 0.875rem;
+  }
+
   .summary-grid {
     grid-template-columns: 1fr;
+  }
+
+  .summary-item {
+    padding: 0.75rem;
+  }
+
+  .booking-actions {
+    flex-direction: column;
+  }
+
+  .booking-actions .btn {
+    width: 100%;
+  }
+
+  .booking-background .blob-1 {
+    width: 300px;
+    height: 300px;
+    top: -100px;
+    right: -100px;
+  }
+
+  .booking-background .blob-2 {
+    width: 250px;
+    height: 250px;
+    bottom: -75px;
+    left: -75px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .booking-page-premium {
+    padding: 1.5rem;
+  }
+
+  .booking-form-premium {
+    padding: 2rem;
+  }
+
+  .time-slots-premium {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .consultation-type-premium {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .booking-background .blob-1 {
+    width: 450px;
+    height: 450px;
+  }
+
+  .booking-background .blob-2 {
+    width: 350px;
+    height: 350px;
   }
 }
 

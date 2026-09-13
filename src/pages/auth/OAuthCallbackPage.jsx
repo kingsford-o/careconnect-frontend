@@ -56,7 +56,8 @@ export default function OAuthCallbackPage() {
         throw new Error('Failed to establish session');
       }
 
-      const requestedRole = sessionStorage.getItem('signup_role') || 'patient';
+      const urlParams = new URLSearchParams(window.location.search);
+      const requestedRole = urlParams.get('role') || 'patient';
 
       // Try to call backend with timeout, but don't fail if unavailable
       try {
@@ -92,11 +93,12 @@ export default function OAuthCallbackPage() {
         resolvedRole = requestedRole;
       }
 
-      // Store auth token
-      if (finalSession.access_token) {
-        localStorage.setItem('auth_token', finalSession.access_token);
+      // NO STORAGE - Don't store auth token
+      // Clear all storage
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        sessionStorage.clear();
       }
-      sessionStorage.removeItem('signup_role');
 
       // Hydrate the auth store with the session
       await hydrate();

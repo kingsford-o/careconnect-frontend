@@ -641,34 +641,114 @@ section {
   .patient-dashboard-premium {
     padding: 1rem;
   }
-  
+
   .header-content {
     flex-direction: column;
     align-items: flex-start;
+    gap: 1rem;
   }
-  
+
   .profile-button {
     align-self: flex-end;
   }
-  
+
+  .dashboard-title {
+    font-size: 1.5rem;
+  }
+
+  .dashboard-subtitle {
+    font-size: 0.875rem;
+  }
+
   .section-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;
   }
-  
+
+  .section-header h2 {
+    font-size: 1.25rem;
+  }
+
   .snapshot-grid,
   .quick-actions-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
-  
+
   .health-score-card {
     grid-column: span 1;
   }
-  
+
+  .snapshot-card,
+  .quick-action-card {
+    padding: 1rem;
+  }
+
+  .snapshot-value {
+    font-size: 1.75rem;
+  }
+
   .doctors-grid-premium,
   .care-team-grid {
     grid-template-columns: 1fr;
+  }
+
+  .doctor-card-premium,
+  .care-team-card {
+    padding: 1rem;
+  }
+
+  .appointment-card-premium {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .appointment-time {
+    border-right: none;
+    border-bottom: 1px solid var(--border-light);
+    padding-right: 0;
+    padding-bottom: 0.5rem;
+    width: 100%;
+  }
+
+  .appointment-details {
+    width: 100%;
+  }
+
+  .appointment-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .message-btn {
+    width: 100%;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .patient-dashboard-premium {
+    padding: 1.5rem;
+  }
+
+  .snapshot-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .quick-actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .doctors-grid-premium {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .care-team-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .health-score-card {
+    grid-column: span 2;
   }
 }
 

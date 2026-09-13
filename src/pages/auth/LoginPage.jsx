@@ -14,9 +14,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   
   const queryRole = new URLSearchParams(location.search).get('role');
-  const [role, setRole] = useState(
-    queryRole || sessionStorage.getItem('signup_role') || 'patient'
-  );
+  const [role, setRole] = useState(queryRole || 'patient');
   const [adminAuthMode, setAdminAuthMode] = useState('passkey'); // 'passkey' | 'credentials'
 
   useEffect(() => {
@@ -34,8 +32,7 @@ export default function LoginPage() {
   const handleRoleChange = (newRole) => {
     setRole(newRole);
     setError('');
-    sessionStorage.setItem('signup_role', newRole);
-    // Update URL param smoothly without full page reload
+    // NO STORAGE - Update URL param only
     const searchParams = new URLSearchParams(location.search);
     searchParams.set('role', newRole);
     navigate({ search: searchParams.toString() }, { replace: true });
@@ -43,8 +40,12 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
 
     if (loading) return;
+
+    console.log('🔐 Form submission - Role:', role, 'Admin Mode:', adminAuthMode);
+    console.log('🔐 Form data:', role === 'admin' && adminAuthMode === 'passkey' ? { passkey: '***' } : { email: formData.email, password: '***' });
 
     setLoading(true);
     setError('');
@@ -52,10 +53,17 @@ export default function LoginPage() {
     try {
       let result;
       if (role === 'admin' && adminAuthMode === 'passkey') {
+        console.log('🔐 Calling adminLogin with passkey');
+        if (!formData.passkey.trim()) {
+          throw new Error('Please enter the admin passkey');
+        }
         result = await adminLogin(formData.passkey);
       } else {
+        console.log('🔐 Calling regular login');
         result = await login(formData.email, formData.password, role);
       }
+
+      console.log('🔐 Login result:', result);
 
       const userRole = result?.role || (role === 'admin' ? 'admin' : (role === 'doctor' ? 'doctor' : 'patient'));
       const destination = location.state?.from;
@@ -66,11 +74,14 @@ export default function LoginPage() {
         defaultDestination = '/doctor/dashboard';
       }
 
+      console.log('🔐 Navigating to:', destination ? `${destination.pathname}${destination.search}${destination.hash}` : defaultDestination);
+
       navigate(
         destination ? `${destination.pathname}${destination.search}${destination.hash}` : defaultDestination,
         { replace: true }
       );
     } catch (err) {
+      console.error('🔐 Login error:', err);
       setError(err.message || 'Invalid email or password');
     } finally {
       setLoading(false);
@@ -80,13 +91,7 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     try {
       const destination = location.state?.from;
-      if (destination) {
-        sessionStorage.setItem(
-          'auth_redirect',
-          `${destination.pathname}${destination.search}${destination.hash}`
-        );
-      }
-
+      // NO STORAGE - Pass destination through URL params if needed
       const googleRole = destination?.pathname?.startsWith('/patient/')
         ? 'patient'
         : role || 'patient';
@@ -166,7 +171,7 @@ export default function LoginPage() {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="auth-form">
+        <form onSubmit={handleSubmit} className="auth-form" action="#" autoComplete="off">
           {error && (
             <div className="error-alert">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -244,10 +249,11 @@ export default function LoginPage() {
             </div>
           )}
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="btn btn-primary btn-large"
             disabled={loading}
+            formNoValidate
           >
             {loading ? 'Signing In...' : 'Sign In'}
           </button>
