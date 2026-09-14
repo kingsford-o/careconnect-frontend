@@ -40,22 +40,12 @@ export default function OAuthCallbackPage() {
 
         finalSession = data.session;
       } else {
-        // Try to get session from URL using Supabase's built-in method
-        const { data, error } = await supabase.auth.getSessionFromUrl();
-        
-        if (error) {
-          console.error('Session from URL error:', error);
-          // Fallback: try to get current session
-          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-          if (sessionError || !session) {
-            throw new Error('No session found in OAuth callback');
-          }
-          finalSession = session;
-        } else if (!data.session) {
+        // Fallback: try to get current session if no hash params
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError || !session) {
           throw new Error('No session found in OAuth callback');
-        } else {
-          finalSession = data.session;
         }
+        finalSession = session;
       }
 
       if (!finalSession) {
