@@ -4,6 +4,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useUIStore } from '../../store/uiStore';
 import EmptyState from '../../components/common/EmptyState';
 import VerificationStatus from '../../components/doctor/VerificationStatus';
+import AppointmentResponseModal from '../../components/common/AppointmentResponseModal';
 import { REALTIME_REFRESH_EVENT } from '../../services/realtime';
 
 export default function DashboardPage() {
@@ -12,6 +13,8 @@ export default function DashboardPage() {
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
   const doctorProfile = useAuthStore(state => state.doctorProfile);
   const profileComplete = useAuthStore(state => state.profileComplete);
+  const showModal = useUIStore(state => state.showModal);
+  const showToast = useUIStore(state => state.showToast);
   const [stats, setStats] = useState({
     todayAppointments: 0,
     thisWeekAppointments: 0,
@@ -24,7 +27,6 @@ export default function DashboardPage() {
   const [todayAppointments, setTodayAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('today');
   const [isAvailable, setIsAvailable] = useState(true);
   const [recentActivity, setRecentActivity] = useState([]);
   const [patients, setPatients] = useState([]);
@@ -264,11 +266,6 @@ export default function DashboardPage() {
         onClose={() => {}}
       />
     );
-  };
-
-  const toggleAvailability = () => {
-    setIsAvailable(!isAvailable);
-    setStats(prev => ({ ...prev, availability: !isAvailable ? 'Available' : 'Unavailable' }));
   };
 
   // Show loading state if user data is not available

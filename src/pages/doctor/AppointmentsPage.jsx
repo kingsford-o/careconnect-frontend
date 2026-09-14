@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { useUIStore } from '../../store/uiStore';
 import EmptyState from '../../components/common/EmptyState';
@@ -14,6 +14,7 @@ export default function DoctorAppointmentsPage() {
   const [activeTab, setActiveTab] = useState('upcoming');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
 
   useEffect(() => {
     fetchAppointments();
@@ -151,15 +152,15 @@ export default function DoctorAppointmentsPage() {
   );
 
   const getFilteredList = () => {
-    let list = [];
-    if (activeTab === 'upcoming') list = upcomingAppointments;
-    else if (activeTab === 'completed') list = completedAppointments;
-    else list = cancelledAppointments;
+    let filteredList;
+    if (activeTab === 'upcoming') filteredList = upcomingAppointments;
+    else if (activeTab === 'completed') filteredList = completedAppointments;
+    else filteredList = cancelledAppointments;
 
-    if (!searchQuery.trim()) return list;
+    if (!searchQuery.trim()) return filteredList;
 
     const q = searchQuery.toLowerCase();
-    return list.filter(apt => {
+    return filteredList.filter(apt => {
       const patientName = (apt.patient_id?.users?.full_name || apt.patient_name || '').toLowerCase();
       const reason = (apt.reason_for_visit || '').toLowerCase();
       const type = (apt.consultation_type || '').toLowerCase();
