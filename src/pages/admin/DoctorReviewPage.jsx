@@ -6,6 +6,7 @@ import StatusBadge from '../../components/common/StatusBadge';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import RejectDialog from '../../components/common/RejectDialog';
 import EmptyState from '../../components/common/EmptyState';
+import { REALTIME_REFRESH_EVENT } from '../../services/realtime';
 
 export default function DoctorReviewPage() {
   const { doctorId } = useParams();
@@ -20,6 +21,9 @@ export default function DoctorReviewPage() {
 
   useEffect(() => {
     fetchDoctorDetails();
+    const handleRefresh = () => fetchDoctorDetails();
+    window.addEventListener(REALTIME_REFRESH_EVENT, handleRefresh);
+    return () => window.removeEventListener(REALTIME_REFRESH_EVENT, handleRefresh);
   }, [doctorId]);
 
   const fetchDoctorDetails = async () => {
@@ -39,7 +43,7 @@ export default function DoctorReviewPage() {
       setDoctor(data);
     } catch (error) {
       console.error('Error fetching doctor details:', error);
-      showToast('Failed to load doctor details', 'error');
+      showToast('Failed to load doctor credentials file', 'error');
     } finally {
       setLoading(false);
     }
@@ -48,9 +52,9 @@ export default function DoctorReviewPage() {
   const handleApprove = () => {
     showModal(
       <ConfirmDialog
-        title="Approve Doctor"
-        message={`Are you sure you want to approve ${doctor.users?.full_name || 'this doctor'}? Once approved, this doctor will become visible to patients and can receive appointments.`}
-        confirmText="Approve Doctor"
+        title="Approve Practitioner Credentials"
+        message={`Are you sure you want to verify Dr. ${doctor.users?.full_name || doctor.name || 'this doctor'}? Once approved, their clinical profile will immediately be visible to patients across CareConnect.`}
+        confirmText="Approve Credentials"
         onConfirm={() => approveDoctor()}
         variant="primary"
       />
@@ -60,6 +64,8 @@ export default function DoctorReviewPage() {
   const handleReject = () => {
     showModal(
       <RejectDialog
+        title={`Decline Application - Dr. ${doctor.users?.full_name || doctor.name || ''}`}
+        message="Please provide a specific clinical reason for why this credential application was declined. The doctor will receive this feedback."
         onReject={(reason) => rejectDoctor(reason)}
       />
     );
@@ -80,8 +86,8 @@ export default function DoctorReviewPage() {
         throw new Error('Failed to approve doctor');
       }
 
-      showToast('Doctor approved successfully', 'success');
-      navigate('/admin/doctors/pending');
+      showToast('Doctor credentials verified successfully! In-app notifications dispatched.', 'success');
+      navigate('/admin/doctors?status=approved');
     } catch (error) {
       console.error('Error approving doctor:', error);
       showToast('Failed to approve doctor', 'error');
@@ -107,8 +113,8 @@ export default function DoctorReviewPage() {
         throw new Error('Failed to reject doctor');
       }
 
-      showToast('Doctor rejected successfully', 'success');
-      navigate('/admin/doctors/pending');
+      showToast('Doctor application declined.', 'info');
+      navigate('/admin/doctors?status=rejected');
     } catch (error) {
       console.error('Error rejecting doctor:', error);
       showToast('Failed to reject doctor', 'error');
@@ -119,59 +125,78 @@ export default function DoctorReviewPage() {
 
   if (loading) {
     return (
-      <div className="loading-state">
-        <div className="loading-spinner"></div>
-        <p>Loading doctor details...</p>
+      <div className="admin-dashboard" style={{ maxWidth: '1200px', margin: '0 auto', padding: '3rem 1.5rem' }}>
+        <div className="loading-state">
+          <div className="loading-spinner"></div>
+          <p>Loading practitioner credentials file...</p>
+        </div>
       </div>
     );
   }
 
   if (!doctor) {
     return (
-      <EmptyState
-        variant="doctors"
-        title="Doctor not found"
-        description="The doctor you're looking for doesn't exist or has been removed"
-        action="Back to Applications"
-        onAction={() => navigate('/admin/doctors/pending')}
-      />
+      <div className="admin-dashboard" style={{ maxWidth: '1200px', margin: '0 auto', padding: '3rem 1.5rem' }}>
+        <EmptyState
+          variant="doctors"
+          title="Doctor record not found"
+          description="The requested practitioner record does not exist or has been removed."
+          action="Back to Applications"
+          onAction={() => navigate('/admin/doctors?status=pending')}
+        />
+      </div>
     );
   }
 
+  const doctorName = doctor.name || doctor.users?.full_name || 'Practitioner';
+  const doctorEmail = doctor.email || doctor.users?.email || 'N/A';
+  const doctorPhone = doctor.phone || doctor.users?.phone || 'N/A';
+
   return (
-    <div className="admin-doctor-review-page">
-      <div className="page-header">
-        <button type="button" onClick={() => navigate('/admin/doctors/pending')} className="btn btn-outline btn-sm">
-          ← Back to Applications
-        </button>
+    <div className="admin-dashboard admin-doctor-review-page" style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1.5rem' }}>
+      <div className="page-header" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h1>Doctor Review</h1>
-          <p>Review doctor application details</p>
+          <button 
+            type="button" 
+            onClick={() => navigate('/admin/doctors?status=pending')} 
+            className="btn btn-outline btn-sm"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.75rem' }}
+          >
+            ← Back to Applications Queue
+          </button>
+          <h1 className="dashboard-title">Practitioner Credential Review</h1>
+          <p className="dashboard-subtitle">Medical license verification and credential audit</p>
         </div>
       </div>
 
-      <div className="doctor-review-content">
-        <div className="doctor-profile-section">
-          <div className="doctor-profile-header">
-            <div className="doctor-avatar-large">
-              {doctor.users?.profile_image_url ? (
-                <img src={doctor.users.profile_image_url} alt={doctor.users.full_name} />
-              ) : (
-                <div className="avatar-placeholder-large">
-                  {doctor.users?.full_name?.charAt(0) || 'D'}
+      <div className="doctor-review-content" style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '20px', overflow: 'hidden', boxShadow: 'var(--shadow-md)' }}>
+        <div className="doctor-profile-section" style={{ padding: '2rem' }}>
+          <div className="doctor-profile-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1.5rem', paddingBottom: '2rem', borderBottom: '1px solid var(--border-light)', marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+              <div className="doctor-avatar-large" style={{ width: '90px', height: '90px', borderRadius: '50%', background: 'var(--gradient-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', fontWeight: 'bold' }}>
+                {doctor.profile_image_url || doctor.users?.profile_image_url ? (
+                  <img src={doctor.profile_image_url || doctor.users?.profile_image_url} alt={doctorName} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                ) : (
+                  <span>{doctorName.charAt(0).toUpperCase()}</span>
+                )}
+              </div>
+              <div className="doctor-profile-info">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
+                  <StatusBadge status={doctor.verification_status || 'pending'} />
+                  <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
+                    Applied {new Date(doctor.created_at).toLocaleDateString()}
+                  </span>
                 </div>
-              )}
-            </div>
-            <div className="doctor-profile-info">
-              <h2>{doctor.users?.full_name || 'Unknown'}</h2>
-              <p className="doctor-specialty">{doctor.specialty || 'Not specified'}</p>
-              <div className="doctor-meta">
-                <StatusBadge status={doctor.verification_status || 'pending'} />
-                <span className="meta-divider">•</span>
-                <span>Applied {new Date(doctor.created_at).toLocaleDateString()}</span>
+                <h2 style={{ margin: '0 0 0.25rem', fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  Dr. {doctorName}
+                </h2>
+                <p style={{ margin: 0, color: 'var(--primary-600)', fontWeight: 600, fontSize: '1rem' }}>
+                  {doctor.specialty || 'General Practice'}
+                </p>
               </div>
             </div>
-            <div className="doctor-review-actions">
+
+            <div className="doctor-review-actions" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
               {doctor.verification_status === 'pending' && (
                 <>
                   <button
@@ -180,7 +205,7 @@ export default function DoctorReviewPage() {
                     className="btn btn-primary"
                     disabled={actionLoading}
                   >
-                    {actionLoading ? 'Approving...' : 'Approve Doctor'}
+                    {actionLoading ? 'Processing...' : 'Approve Medical License'}
                   </button>
                   <button
                     type="button"
@@ -188,96 +213,85 @@ export default function DoctorReviewPage() {
                     className="btn btn-danger"
                     disabled={actionLoading}
                   >
-                    {actionLoading ? 'Rejecting...' : 'Reject Application'}
+                    {actionLoading ? 'Processing...' : 'Decline Application'}
                   </button>
                 </>
               )}
               {doctor.verification_status === 'approved' && (
-                <div className="status-message status-approved">
-                  ✓ This doctor has been approved
+                <div className="status-message status-approved" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.25rem', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.1)', color: '#059669', fontWeight: 600 }}>
+                  <span>✓ Verified Practitioner in Platform Directory</span>
                 </div>
               )}
               {doctor.verification_status === 'rejected' && (
-                <div className="status-message status-rejected">
-                  ✗ This application was rejected
+                <div className="status-message status-rejected" style={{ padding: '0.75rem 1.25rem', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)', color: '#dc2626', fontWeight: 600 }}>
+                  <div>✗ Application Declined</div>
                   {doctor.rejection_reason && (
-                    <p className="rejection-reason">Reason: {doctor.rejection_reason}</p>
+                    <div style={{ fontWeight: 400, fontSize: '0.875rem', marginTop: '0.25rem' }}>
+                      Reason: {doctor.rejection_reason}
+                    </div>
                   )}
                 </div>
               )}
             </div>
           </div>
 
-          <div className="doctor-details-grid">
-            <div className="detail-section">
-              <h3>Contact Information</h3>
-              <div className="detail-list">
-                <div className="detail-item">
-                  <span className="detail-label">Email</span>
-                  <span className="detail-value">{doctor.users?.email || 'N/A'}</span>
+          <div className="doctor-details-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+            <div className="detail-section" style={{ background: 'var(--surface-secondary)', borderRadius: '14px', padding: '1.5rem', border: '1px solid var(--border-light)' }}>
+              <h3 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>Contact Details</h3>
+              <div className="detail-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div>
+                  <span style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 600 }}>Email Address</span>
+                  <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{doctorEmail}</span>
                 </div>
-                <div className="detail-item">
-                  <span className="detail-label">Phone</span>
-                  <span className="detail-value">{doctor.users?.phone || 'N/A'}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="detail-section">
-              <h3>Professional Information</h3>
-              <div className="detail-list">
-                <div className="detail-item">
-                  <span className="detail-label">Specialty</span>
-                  <span className="detail-value">{doctor.specialty || 'Not specified'}</span>
-                </div>
-                <div className="detail-item">
-                  <span className="detail-label">Years of Experience</span>
-                  <span className="detail-value">{doctor.years_experience || 0} years</span>
-                </div>
-                <div className="detail-item">
-                  <span className="detail-label">Hospital/Clinic</span>
-                  <span className="detail-value">{doctor.hospital_name || 'Not specified'}</span>
-                </div>
-                <div className="detail-item">
-                  <span className="detail-label">Medical License</span>
-                  <span className="detail-value">{doctor.medical_license || 'Pending'}</span>
-                </div>
-                <div className="detail-item">
-                  <span className="detail-label">Hourly Rate</span>
-                  <span className="detail-value">${doctor.hourly_rate || 0}/hour</span>
+                <div>
+                  <span style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 600 }}>Phone Contact</span>
+                  <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{doctorPhone}</span>
                 </div>
               </div>
             </div>
 
-            <div className="detail-section detail-section-full">
-              <h3>About</h3>
-              <p className="doctor-bio">
-                {doctor.bio || 'No bio provided.'}
+            <div className="detail-section" style={{ background: 'var(--surface-secondary)', borderRadius: '14px', padding: '1.5rem', border: '1px solid var(--border-light)' }}>
+              <h3 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>Professional Credentials</h3>
+              <div className="detail-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div>
+                  <span style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 600 }}>Medical License Number</span>
+                  <span style={{ fontWeight: 700, color: 'var(--primary-600)', fontSize: '1.125rem' }}>{doctor.medical_license || 'Pending Registration'}</span>
+                </div>
+                <div>
+                  <span style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 600 }}>Hospital / Clinic Affiliation</span>
+                  <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{doctor.hospital_name || doctor.hospital || 'Not specified'}</span>
+                </div>
+                <div>
+                  <span style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 600 }}>Years of Clinical Experience</span>
+                  <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{doctor.years_experience || 0} Years</span>
+                </div>
+                <div>
+                  <span style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 600 }}>Hourly Consultation Fee</span>
+                  <span style={{ fontWeight: 700, color: 'var(--success-600)' }}>GHS {doctor.hourly_rate || 0} / hr</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="detail-section detail-section-full" style={{ gridColumn: '1 / -1', background: 'var(--surface-secondary)', borderRadius: '14px', padding: '1.5rem', border: '1px solid var(--border-light)' }}>
+              <h3 style={{ margin: '0 0 0.75rem', fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>Clinical Bio & Practice Statement</h3>
+              <p style={{ margin: 0, color: 'var(--text-secondary)', lineHeight: 1.6, fontSize: '0.9375rem' }}>
+                {doctor.bio || 'No personal statement or bio was submitted with this application.'}
               </p>
             </div>
 
             {doctor.verified_at && (
-              <div className="detail-section">
-                <h3>Verification Details</h3>
-                <div className="detail-list">
-                  <div className="detail-item">
-                    <span className="detail-label">Verified At</span>
-                    <span className="detail-value">
-                      {new Date(doctor.verified_at).toLocaleString()}
-                    </span>
+              <div className="detail-section" style={{ background: 'var(--surface-secondary)', borderRadius: '14px', padding: '1.5rem', border: '1px solid var(--border-light)' }}>
+                <h3 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>Verification Audit Record</h3>
+                <div className="detail-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <div>
+                    <span style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 600 }}>Verified Timestamp</span>
+                    <span style={{ fontWeight: 500 }}>{new Date(doctor.verified_at).toLocaleString()}</span>
                   </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Verified By</span>
-                    <span className="detail-value">Admin ID: {doctor.verified_by}</span>
+                  <div>
+                    <span style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 600 }}>Verified By Admin ID</span>
+                    <span style={{ fontWeight: 500 }}>{doctor.verified_by}</span>
                   </div>
                 </div>
-              </div>
-            )}
-
-            {doctor.rejection_reason && (
-              <div className="detail-section detail-section-full">
-                <h3>Rejection Reason</h3>
-                <p className="rejection-reason-full">{doctor.rejection_reason}</p>
               </div>
             )}
           </div>
@@ -286,3 +300,4 @@ export default function DoctorReviewPage() {
     </div>
   );
 }
+

@@ -1,7 +1,5 @@
-import React from 'react';
-
 export default function Logo({ size = 24, className = '' }) {
-  const gradientId = `logoGradient-${Math.random().toString(36).substr(2, 9)}`;
+  const gradientId = 'careconnect-logo-gradient';
   
   return (
     <svg

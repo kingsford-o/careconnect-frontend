@@ -6,39 +6,84 @@ export const subscribeToRealtimeUpdates = (user) => {
   if (!supabase || !user?.id) return () => {};
 
   const channels = [];
-  const notifyRefresh = () => window.dispatchEvent(new CustomEvent(refreshEvent));
+  const notifyRefresh = () => {
+    window.dispatchEvent(new CustomEvent(refreshEvent));
+  };
 
-  const notificationsChannel = supabase
-    .channel(`notifications:${user.id}`)
-    .on('postgres_changes', {
-      event: 'INSERT', schema: 'public', table: 'notifications',
-      filter: `user_id=eq.${user.id}`,
-    }, notifyRefresh)
-    .subscribe((status) => {
-      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-        console.warn('Realtime notifications unavailable; using API polling fallback.');
-      }
-    });
-  channels.push(notificationsChannel);
+  try {
+    // 1. Notifications Channel for current user
+    const notificationsChannel = supabase
+      .channel(`notifications:${user.id}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'notifications',
+        filter: `user_id=eq.${user.id}`,
+      }, (payload) => {
+        notifyRefresh();
+        window.dispatchEvent(new CustomEvent('notification', { detail: payload }));
+      })
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.warn('Realtime notifications channel unavailable; fallback active.');
+        }
+      });
+    channels.push(notificationsChannel);
 
-  if (user.role === 'doctor' || user.role === 'admin') {
+    // 2. Appointments Channel (Patient & Doctor real-time synchronization)
+    const appointmentsChannel = supabase
+      .channel(`appointments:${user.id}:${user.role}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'appointments',
+      }, (payload) => {
+        notifyRefresh();
+        window.dispatchEvent(new CustomEvent('appointment-change', { detail: payload }));
+      })
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.warn('Realtime appointments channel unavailable; fallback active.');
+        }
+      });
+    channels.push(appointmentsChannel);
+
+    // 3. Doctors & Verification Channel (Doctor & Admin synchronization)
     const doctorsChannel = supabase
       .channel(`doctors:${user.id}:${user.role}`)
       .on('postgres_changes', {
-        event: '*', schema: 'public', table: 'doctors',
-        ...(user.role === 'doctor' ? { filter: `user_id=eq.${user.id}` } : {}),
-      }, notifyRefresh)
+        event: '*',
+        schema: 'public',
+        table: 'doctors',
+      }, (payload) => {
+        notifyRefresh();
+        window.dispatchEvent(new CustomEvent('doctor-status-change', { detail: payload }));
+      })
       .subscribe((status) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          console.warn('Realtime doctor updates unavailable; normal API fetching remains active.');
+          console.warn('Realtime doctor channel unavailable; fallback active.');
         }
       });
     channels.push(doctorsChannel);
+  } catch (err) {
+    console.error('Error setting up Supabase realtime channels:', err);
   }
 
+  // 4. Resilient background heartbeat (15s polling fallback)
+  const pollInterval = setInterval(() => {
+    notifyRefresh();
+  }, 15000);
+
   return () => {
-    channels.forEach(channel => supabase.removeChannel(channel));
+    clearInterval(pollInterval);
+    channels.forEach(channel => {
+      try {
+        supabase.removeChannel(channel);
+      } catch {
+        // ignore cleanup error
+      }
+    });
   };
 };
 
-export const REALTIME_REFRESH_EVENT = refreshEvent;
+export const REALTIME_REFRESH_EVENT = refreshEvent;

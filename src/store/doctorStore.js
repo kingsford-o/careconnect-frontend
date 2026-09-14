@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export const useDoctorStore = create((set, get) => ({
+export const useDoctorStore = create((set) => ({
   doctors: [],
   currentDoctor: null,
   loading: false,

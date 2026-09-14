@@ -10,18 +10,20 @@ export default function EditProfilePage() {
   const user = useAuthStore(state => state.user);
   const updateProfile = useAuthStore(state => state.updateProfile);
   const loading = useAuthStore(state => state.loading);
-  
-  if (!user) {
-    return <div className="loading-state">Loading profile...</div>;
-  }
 
   const [selectedAvatar, setSelectedAvatar] = useState(user?.avatar || '🐱');
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    setSelectedAvatar(user?.avatar || '🐱');
-  }, [user]);
+    if (user?.avatar) {
+      setSelectedAvatar(user.avatar);
+    }
+  }, [user?.avatar]);
+
+  if (!user) {
+    return <div className="loading-state">Loading profile...</div>;
+  }
 
   const handleSubmit = async (formData) => {
     if (loading) return;

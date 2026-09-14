@@ -1,5 +1,5 @@
 import { useEffect, Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import { useUIStore } from './store/uiStore';
 import FloatingThemeToggle from './components/shared/FloatingThemeToggle';
@@ -71,13 +71,66 @@ function LoadingFallback() {
   );
 }
 
-function App() {
-  const isAuthenticated = useAuthStore(state => state.isAuthenticated);
-  const user = useAuthStore(state => state.user);
+function ProtectedRoute({ component: Component, requiredRole }) {
+  const location = useLocation();
   const loading = useAuthStore(state => state.loading);
   const isHydrated = useAuthStore(state => state.isHydrated);
-  const hydrate = useAuthStore(state => state.hydrate);
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated);
+  const user = useAuthStore(state => state.user);
+
+  if (loading || !isHydrated) return <LoadingFallback />;
+  if (!isAuthenticated) return <Navigate to="/auth/login" state={{ from: location }} replace />;
+  if (requiredRole && user?.role !== requiredRole) {
+    if (user?.role === 'doctor') return <Navigate to="/doctor/dashboard" replace />;
+    if (user?.role === 'admin') return <Navigate to="/admin/dashboard" replace />;
+    return <Navigate to="/patient/home" replace />;
+  }
+  return (
+    <AppShell>
+      <Component />
+    </AppShell>
+  );
+}
+
+function GuestRoute({ component: Component }) {
+  const loading = useAuthStore(state => state.loading);
+  const isHydrated = useAuthStore(state => state.isHydrated);
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated);
+  const user = useAuthStore(state => state.user);
+
+  if (loading || !isHydrated) return <LoadingFallback />;
+  if (isAuthenticated) {
+    if (user?.role === 'doctor') return <Navigate to="/doctor/dashboard" replace />;
+    if (user?.role === 'admin') return <Navigate to="/admin/dashboard" replace />;
+    return <Navigate to="/patient/home" replace />;
+  }
+  return <Component />;
+}
+
+// Intelligent root route redirection
+function RootRoute() {
+  const loading = useAuthStore(state => state.loading);
+  const isHydrated = useAuthStore(state => state.isHydrated);
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated);
+  const user = useAuthStore(state => state.user);
+
+  if (loading || !isHydrated) return <LoadingFallback />;
+
+  if (isAuthenticated) {
+    if (user?.role === 'doctor') {
+      return <Navigate to="/doctor/dashboard" replace />;
+    } else if (user?.role === 'patient') {
+      return <Navigate to="/patient/home" replace />;
+    } else if (user?.role === 'admin') {
+      return <Navigate to="/admin/dashboard" replace />;
+    }
+  }
+  return <LandingPage />;
+}
+
+function App() {
   const isDarkMode = useUIStore(state => state.isDarkMode);
+  const hydrate = useAuthStore(state => state.hydrate);
 
   useEffect(() => {
     hydrate();
@@ -104,45 +157,6 @@ function App() {
     }
   }, [isDarkMode]);
 
-  const ProtectedRoute = ({ component: Component, requiredRole }) => {
-    if (loading || !isHydrated) return <LoadingFallback />;
-    if (!isAuthenticated) return <Navigate to="/auth/login" />;
-    if (requiredRole && user?.role !== requiredRole) return <Navigate to="/" />;
-    return (
-      <AppShell>
-        <Component />
-      </AppShell>
-    );
-  };
-
-  const GuestRoute = ({ component: Component }) => {
-    if (loading || !isHydrated) return <LoadingFallback />;
-    if (isAuthenticated) {
-      // Redirect to appropriate dashboard based on role
-      if (user?.role === 'doctor') return <Navigate to="/doctor/dashboard" replace />;
-      if (user?.role === 'admin') return <Navigate to="/admin/dashboard" replace />;
-      return <Navigate to="/patient/home" replace />;
-    }
-    return <Component />;
-  };
-
-  // Intelligent root route redirection
-  const RootRoute = () => {
-    // Show loading while hydrating authentication state
-    if (loading || !isHydrated) return <LoadingFallback />;
-
-    if (isAuthenticated) {
-      if (user?.role === 'doctor') {
-        return <Navigate to="/doctor/dashboard" replace />;
-      } else if (user?.role === 'patient') {
-        return <Navigate to="/patient/home" replace />;
-      } else if (user?.role === 'admin') {
-        return <Navigate to="/admin/dashboard" replace />;
-      }
-    }
-    return <LandingPage />;
-  };
-
   return (
     <ErrorBoundary>
       <BrowserRouter>
@@ -163,6 +177,12 @@ function App() {
             <Route path="/auth/login" element={<GuestRoute component={LoginPage} />} />
             <Route path="/auth/signup" element={<GuestRoute component={SignupPage} />} />
             <Route path="/auth/callback" element={<OAuthCallbackPage />} />
+
+            {/* Direct URL Aliases */}
+            <Route path="/login" element={<Navigate to="/auth/login" replace />} />
+            <Route path="/signup" element={<Navigate to="/auth/signup" replace />} />
+            <Route path="/admin/login" element={<Navigate to="/auth/login?role=admin" replace />} />
+
 
             {/* Patient Routes */}
             <Route 

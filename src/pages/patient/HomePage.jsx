@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import DoctorCard from '../../components/common/DoctorCard';
@@ -19,23 +19,7 @@ export default function HomePage() {
   const today = new Date();
   const greeting = today.getHours() < 12 ? 'Good morning' : today.getHours() < 18 ? 'Good afternoon' : 'Good evening';
 
-  useEffect(() => {
-    if (!user || !isAuthenticated) {
-      return;
-    }
-    fetchFeaturedDoctors();
-    fetchAppointments();
-
-    const handleRefresh = () => {
-      fetchFeaturedDoctors();
-      fetchAppointments();
-    };
-
-    window.addEventListener(REALTIME_REFRESH_EVENT, handleRefresh);
-    return () => window.removeEventListener(REALTIME_REFRESH_EVENT, handleRefresh);
-  }, [user, isAuthenticated]);
-
-  const fetchFeaturedDoctors = async () => {
+  const fetchFeaturedDoctors = useCallback(async () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/doctors?limit=6`);
       const data = await response.json();
@@ -48,9 +32,9 @@ export default function HomePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
     if (!user?.id) return;
     try {
       const response = await fetch(
@@ -66,7 +50,23 @@ export default function HomePage() {
       console.error('Error fetching appointments:', err);
       setAppointments([]);
     }
-  };
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!user || !isAuthenticated) {
+      return;
+    }
+    fetchFeaturedDoctors();
+    fetchAppointments();
+
+    const handleRefresh = () => {
+      fetchFeaturedDoctors();
+      fetchAppointments();
+    };
+
+    window.addEventListener(REALTIME_REFRESH_EVENT, handleRefresh);
+    return () => window.removeEventListener(REALTIME_REFRESH_EVENT, handleRefresh);
+  }, [user, isAuthenticated, fetchFeaturedDoctors, fetchAppointments]);
 
   // Filter upcoming & completed
   const upcomingAppointments = appointments

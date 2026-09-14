@@ -201,7 +201,7 @@ export default function DashboardPage() {
     }
   };
 
-  const handleDecline = async (appointmentId) => {
+  const handleDeclineWithReason = async (appointmentId, reason) => {
     setActionLoading(appointmentId);
     try {
       const response = await fetch(
@@ -212,7 +212,7 @@ export default function DashboardPage() {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
           },
-          body: JSON.stringify({ status: 'declined' }),
+          body: JSON.stringify({ status: 'declined', reason: reason || 'Doctor unavailable at the requested time' }),
         }
       );
 
@@ -226,9 +226,49 @@ export default function DashboardPage() {
     }
   };
 
+  const handleReschedule = async (appointmentId, newDate, newTime) => {
+    setActionLoading(appointmentId);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/appointments/${appointmentId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          },
+          body: JSON.stringify({
+            status: 'confirmed',
+            appointment_date: `${newDate}T${newTime}:00`
+          }),
+        }
+      );
+
+      if (response.ok) {
+        fetchDashboardData();
+      }
+    } catch (error) {
+      console.error('Error rescheduling appointment:', error);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const openResponseModal = (appointment) => {
+    showModal(
+      <AppointmentResponseModal
+        appointment={appointment}
+        onAccept={(id) => handleConfirm(id)}
+        onReschedule={(id, date, time) => handleReschedule(id, date, time)}
+        onDecline={(id, reason) => handleDeclineWithReason(id, reason)}
+        onClose={() => {}}
+      />
+    );
+  };
+
   const toggleAvailability = () => {
     setIsAvailable(!isAvailable);
-    setStats(prev => ({ ...prev, availability: isAvailable ? 'Unavailable' : 'Available' }));
+    setStats(prev => ({ ...prev, availability: !isAvailable ? 'Available' : 'Unavailable' }));
   };
 
   // Show loading state if user data is not available
@@ -374,16 +414,27 @@ export default function DashboardPage() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleDecline(appointment.id)}
+                        onClick={() => openResponseModal(appointment)}
                         className="btn btn-sm btn-outline"
                         disabled={actionLoading === appointment.id}
                       >
-                        {actionLoading === appointment.id ? 'Declining...' : 'Decline'}
+                        Decline / Reschedule
                       </button>
                     </>
                   )}
                   {appointment.status === 'confirmed' && (
-                    <span className="status-badge confirmed">Confirmed</span>
+                    <>
+                      <span className="status-badge confirmed">Confirmed</span>
+                      {appointment.consultation_type === 'telehealth' && (
+                        <button
+                          type="button"
+                          onClick={() => navigate('/doctor/appointments')}
+                          className="btn btn-sm btn-primary"
+                        >
+                          Join Telehealth
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -423,7 +474,7 @@ export default function DashboardPage() {
       <section className="patients-section">
         <div className="section-header">
           <h2>Patients You've Helped</h2>
-          <button type="button" onClick={() => navigate('/doctor/patients')} className="view-all-btn">View All</button>
+          <button type="button" onClick={() => navigate('/doctor/appointments')} className="view-all-btn">View Appointments</button>
         </div>
         {patients.length === 0 ? (
           <EmptyState

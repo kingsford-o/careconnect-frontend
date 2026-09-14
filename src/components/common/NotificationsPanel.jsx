@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { REALTIME_REFRESH_EVENT } from '../../services/realtime';
@@ -11,26 +11,7 @@ export default function NotificationsPanel() {
   const [isOpen, setIsOpen] = useState(false);
   const panelRef = useRef(null);
 
-  useEffect(() => {
-    fetchNotifications();
-    const handleRefresh = () => fetchNotifications();
-    window.addEventListener(REALTIME_REFRESH_EVENT, handleRefresh);
-    return () => window.removeEventListener(REALTIME_REFRESH_EVENT, handleRefresh);
-  }, [user]);
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (panelRef.current && !panelRef.current.contains(e.target)) {
-        setIsOpen(false);
-      }
-    };
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen]);
-
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       const token = localStorage.getItem('auth_token');
       if (!token) return;
@@ -49,7 +30,26 @@ export default function NotificationsPanel() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+    const handleRefresh = () => fetchNotifications();
+    window.addEventListener(REALTIME_REFRESH_EVENT, handleRefresh);
+    return () => window.removeEventListener(REALTIME_REFRESH_EVENT, handleRefresh);
+  }, [user, fetchNotifications]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (panelRef.current && !panelRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
 
   const markAsRead = async (notificationId) => {
     try {
