@@ -64,10 +64,8 @@ export const useAuthStore = create(
         const data = await response.json();
         console.log('✅ Signup success:', data);
 
-        const token = data.session?.access_token || data.token;
-        if (token && typeof window !== 'undefined') {
-          localStorage.setItem('auth_token', token);
-        }
+        // NO STORAGE - Don't store token for security
+        // Token will be used in memory only during session
 
         set({
           user: {
@@ -117,10 +115,8 @@ export const useAuthStore = create(
         const data = await response.json();
         console.log('✅ Login success:', data);
 
-        const token = data.session?.access_token || data.token;
-        if (token && typeof window !== 'undefined') {
-          localStorage.setItem('auth_token', token);
-        }
+        // NO STORAGE - Don't store token for security
+        // Token will be used in memory only during session
 
         set({
           user: {
@@ -163,10 +159,8 @@ export const useAuthStore = create(
           throw new Error(data.error || 'Admin authentication failed');
         }
 
-        const token = data.session?.access_token || data.token;
-        if (token && typeof window !== 'undefined') {
-          localStorage.setItem('auth_token', token);
-        }
+        // NO STORAGE - Don't store token for security
+        // Token will be used in memory only during session
 
         set({
           user: data.user,
@@ -225,13 +219,17 @@ export const useAuthStore = create(
         const user = get().user;
         if (!user) throw new Error('User not authenticated');
 
+        // Get Supabase session for auth
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) throw new Error('No active session');
+
         const response = await fetch(
           `${import.meta.env.VITE_API_URL}/api/users/${user.id}/profile`,
           {
             method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+              'Authorization': `Bearer ${session.access_token}`,
             },
             body: JSON.stringify(profileData),
           }
@@ -267,13 +265,17 @@ export const useAuthStore = create(
         const user = get().user;
         if (!user) throw new Error('User not authenticated');
 
+        // Get Supabase session for auth
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) throw new Error('No active session');
+
         const response = await fetch(
           `${import.meta.env.VITE_API_URL}/api/users/${user.id}/profile`,
           {
             method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+              'Authorization': `Bearer ${session.access_token}`,
             },
             body: JSON.stringify(profileData),
           }
@@ -312,6 +314,7 @@ export const useAuthStore = create(
         console.warn('Signout warning:', e);
       }
       
+      // Clear any remaining storage for cleanup
       if (typeof window !== 'undefined') {
         localStorage.removeItem('auth_token');
         sessionStorage.clear();
@@ -326,80 +329,23 @@ export const useAuthStore = create(
         loading: false,
       });
 
+      // Redirect to home page
       if (typeof window !== 'undefined') {
-        window.location.replace('/');
+        window.location.href = '/';
       }
     },
 
     hydrate: async () => {
-      try {
-        const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-        if (!token) {
-          set({
-            user: null,
-            isAuthenticated: false,
-            doctorProfile: null,
-            profileComplete: false,
-            loading: false,
-            isHydrated: true,
-          });
-          return;
-        }
-
-        set({ loading: true });
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/validate`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (!response.ok) {
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('auth_token');
-          }
-          set({
-            user: null,
-            isAuthenticated: false,
-            doctorProfile: null,
-            profileComplete: false,
-            loading: false,
-            isHydrated: true,
-          });
-          return;
-        }
-
-        const data = await response.json();
-        set({
-          user: {
-            id: data.user.id,
-            email: data.user.email,
-            full_name: data.user.full_name || data.user.email,
-            role: data.role || data.user.role,
-            profile_image_url: data.user.profile_image_url,
-            avatar: data.user.profile_image_url || '🐱',
-          },
-          isAuthenticated: true,
-          doctorProfile: data.doctorProfile || null,
-          profileComplete: data.profileComplete !== undefined ? data.profileComplete : true,
-          loading: false,
-          isHydrated: true,
-        });
-      } catch (err) {
-        console.error('Session validation error:', err);
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('auth_token');
-        }
-        set({
-          user: null,
-          isAuthenticated: false,
-          doctorProfile: null,
-          profileComplete: false,
-          loading: false,
-          isHydrated: true,
-        });
-      }
+      // NO AUTO-HYDRATION - Don't automatically restore sessions from storage
+      // Users must explicitly log in each session for security
+      set({
+        user: null,
+        isAuthenticated: false,
+        doctorProfile: null,
+        profileComplete: false,
+        loading: false,
+        isHydrated: true,
+      });
     },
   })
 );
