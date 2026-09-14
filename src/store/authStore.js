@@ -10,6 +10,15 @@ export const useAuthStore = create(
     profileComplete: false,
     isHydrated: false,
 
+    setUser: (userData) => {
+      set({
+        user: userData,
+        isAuthenticated: true,
+        isHydrated: true,
+        loading: false,
+      });
+    },
+
     signup: async (credentials) => {
       set({ loading: true });
       try {
@@ -393,4 +402,4 @@ export const useAuthStore = create(
       }
     },
   })
-);
+);

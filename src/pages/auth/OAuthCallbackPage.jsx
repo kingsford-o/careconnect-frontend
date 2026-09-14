@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase from '../../lib/supabaseClient';
 import { useAuthStore } from '../../store/authStore';
@@ -7,9 +7,12 @@ export default function OAuthCallbackPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const hydrate = useAuthStore(state => state.hydrate);
+  const processingRef = useRef(false);
 
   useEffect(() => {
+    // Prevent multiple callback processing
+    if (processingRef.current) return;
+    processingRef.current = true;
     handleOAuthCallback();
   }, []);
 
@@ -23,6 +26,7 @@ export default function OAuthCallbackPage() {
       let finalSession = null;
       let resolvedRole = 'patient';
 
+      // First, try to get session from URL hash (this is the standard OAuth flow)
       if (hashParams.has('access_token') && hashParams.has('refresh_token')) {
         const { data, error } = await supabase.auth.setSession({
           access_token: hashParams.get('access_token'),
@@ -36,19 +40,21 @@ export default function OAuthCallbackPage() {
 
         finalSession = data.session;
       } else {
-        // Exchange the code for a session using Supabase
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-        if (sessionError || !session) {
-          // Try to get session from URL hash
-          const { data, error } = await supabase.auth.getSessionFromUrl();
-          if (error) throw error;
-          if (!data.session) {
+        // Try to get session from URL using Supabase's built-in method
+        const { data, error } = await supabase.auth.getSessionFromUrl();
+        
+        if (error) {
+          console.error('Session from URL error:', error);
+          // Fallback: try to get current session
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+          if (sessionError || !session) {
             throw new Error('No session found in OAuth callback');
           }
-          finalSession = data.session;
-        } else {
           finalSession = session;
+        } else if (!data.session) {
+          throw new Error('No session found in OAuth callback');
+        } else {
+          finalSession = data.session;
         }
       }
 
@@ -88,35 +94,48 @@ export default function OAuthCallbackPage() {
           resolvedRole = requestedRole;
         }
       } catch (fetchError) {
-        // Backend unavailable - use local role from session storage
-        console.log('Backend unavailable, using local session');
+        // Backend unavailable - use local role from URL params
+        console.log('Backend unavailable, using local role from URL');
         resolvedRole = requestedRole;
       }
 
-      // NO STORAGE - Don't store auth token
-      // Clear all storage
-      if (typeof window !== 'undefined') {
-        localStorage.clear();
-        sessionStorage.clear();
-      }
+      // Set auth state directly from the session (without relying on storage)
+      useAuthStore.getState().setUser({
+        id: finalSession.user.id,
+        email: finalSession.user.email,
+        full_name: finalSession.user.user_metadata?.full_name || finalSession.user.email.split('@')[0],
+        role: resolvedRole,
+        avatar: '🐱',
+      });
 
-      // Hydrate the auth store with the session
-      await hydrate();
+      // Store the token for future requests
+      if (finalSession.access_token && typeof window !== 'undefined') {
+        localStorage.setItem('auth_token', finalSession.access_token);
+      }
 
       // Wait a moment to ensure state is updated
       await new Promise(resolve => setTimeout(resolve, 100));
 
       // Navigate based on role
+      let destination = '/patient/home';
       if (resolvedRole === 'doctor') {
-        navigate('/doctor/dashboard', { replace: true });
+        destination = '/doctor/dashboard';
       } else if (resolvedRole === 'admin') {
-        navigate('/admin/dashboard', { replace: true });
-      } else {
-        navigate('/patient/home', { replace: true });
+        destination = '/admin/dashboard';
       }
+
+      console.log('🔐 OAuth callback success, navigating to:', destination);
+      navigate(destination, { replace: true });
     } catch (err) {
       console.error('❌ OAuth callback error:', err);
       setError(err.message || 'Authentication failed. Please try again.');
+      
+      // Clear any partial auth state
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth_token');
+        sessionStorage.clear();
+      }
+      
       setTimeout(() => {
         navigate('/auth/login');
       }, 3000);
