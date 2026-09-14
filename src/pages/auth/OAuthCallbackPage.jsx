@@ -90,12 +90,19 @@ export default function OAuthCallbackPage() {
       }
 
       // Set auth state directly from the session (without relying on storage)
-      useAuthStore.getState().setUser({
-        id: finalSession.user.id,
-        email: finalSession.user.email,
-        full_name: finalSession.user.user_metadata?.full_name || finalSession.user.email.split('@')[0],
-        role: resolvedRole,
-        avatar: '🐱',
+      useAuthStore.setState({
+        user: {
+          id: finalSession.user.id,
+          email: finalSession.user.email,
+          full_name: finalSession.user.user_metadata?.full_name || finalSession.user.email.split('@')[0],
+          role: resolvedRole,
+          avatar: '🐱',
+        },
+        isAuthenticated: true,
+        isHydrated: true,
+        loading: false,
+        // Doctors start with incomplete profile
+        profileComplete: resolvedRole !== 'doctor',
       });
 
       // Store the token for future requests
@@ -106,10 +113,10 @@ export default function OAuthCallbackPage() {
       // Wait a moment to ensure state is updated
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Navigate based on role
+      // Navigate based on role - doctors go to profile completion first
       let destination = '/patient/home';
       if (resolvedRole === 'doctor') {
-        destination = '/doctor/dashboard';
+        destination = '/doctor/complete-profile';
       } else if (resolvedRole === 'admin') {
         destination = '/admin/dashboard';
       }

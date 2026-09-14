@@ -69,10 +69,17 @@ export default function LoginPage() {
       const userRole = result?.role || (role === 'admin' ? 'admin' : (role === 'doctor' ? 'doctor' : 'patient'));
       const destination = location.state?.from;
       let defaultDestination = '/patient/home';
+      
+      // Doctors go to profile completion first
       if (userRole === 'admin') {
         defaultDestination = '/admin/dashboard';
       } else if (userRole === 'doctor') {
-        defaultDestination = '/doctor/dashboard';
+        // Check if doctor profile is complete
+        if (result?.profileComplete === false) {
+          defaultDestination = '/doctor/complete-profile';
+        } else {
+          defaultDestination = '/doctor/dashboard';
+        }
       }
 
       const destinationPath = destination?.pathname;

@@ -113,11 +113,16 @@ function RootRoute() {
   const isHydrated = useAuthStore(state => state.isHydrated);
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
   const user = useAuthStore(state => state.user);
+  const profileComplete = useAuthStore(state => state.profileComplete);
 
   if (loading || !isHydrated) return <LoadingFallback />;
 
   if (isAuthenticated) {
     if (user?.role === 'doctor') {
+      // Doctors go to profile completion if not complete, otherwise dashboard
+      if (!profileComplete) {
+        return <Navigate to="/doctor/complete-profile" replace />;
+      }
       return <Navigate to="/doctor/dashboard" replace />;
     } else if (user?.role === 'patient') {
       return <Navigate to="/patient/home" replace />;

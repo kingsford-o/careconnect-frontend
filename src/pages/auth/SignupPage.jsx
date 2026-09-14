@@ -72,8 +72,15 @@ export default function SignupPage() {
     try {
       // Pass role directly in form data
       await signup({ ...formData, role });
-      // Navigation will happen automatically via RootRoute after hydration
-      navigate('/', { replace: true });
+      
+      // Direct navigation based on role - bypass automatic routing
+      if (role === 'doctor') {
+        navigate('/doctor/complete-profile', { replace: true });
+      } else if (role === 'admin') {
+        navigate('/admin/dashboard', { replace: true });
+      } else {
+        navigate('/patient/home', { replace: true });
+      }
     } catch (err) {
       setError(err.message || 'Signup failed');
     } finally {

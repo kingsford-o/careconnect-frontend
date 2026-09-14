@@ -77,6 +77,8 @@ export const useAuthStore = create(
           },
           isAuthenticated: true,
           isHydrated: true,
+          // Doctors start with incomplete profile
+          profileComplete: role !== 'doctor',
         });
 
         return data;
