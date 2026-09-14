@@ -77,11 +77,18 @@ function ProtectedRoute({ component: Component, requiredRole }) {
   const isHydrated = useAuthStore(state => state.isHydrated);
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
   const user = useAuthStore(state => state.user);
+  const profileComplete = useAuthStore(state => state.profileComplete);
 
   if (loading || !isHydrated) return <LoadingFallback />;
   if (!isAuthenticated) return <Navigate to="/auth/login" state={{ from: location }} replace />;
   if (requiredRole && user?.role !== requiredRole) {
-    if (user?.role === 'doctor') return <Navigate to="/doctor/dashboard" replace />;
+    if (user?.role === 'doctor') {
+      // Doctors go to profile completion if not complete, otherwise dashboard
+      if (!profileComplete) {
+        return <Navigate to="/doctor/complete-profile" replace />;
+      }
+      return <Navigate to="/doctor/dashboard" replace />;
+    }
     if (user?.role === 'admin') return <Navigate to="/admin/dashboard" replace />;
     return <Navigate to="/patient/home" replace />;
   }
@@ -97,10 +104,17 @@ function GuestRoute({ component: Component }) {
   const isHydrated = useAuthStore(state => state.isHydrated);
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
   const user = useAuthStore(state => state.user);
+  const profileComplete = useAuthStore(state => state.profileComplete);
 
   if (loading || !isHydrated) return <LoadingFallback />;
   if (isAuthenticated) {
-    if (user?.role === 'doctor') return <Navigate to="/doctor/dashboard" replace />;
+    if (user?.role === 'doctor') {
+      // Doctors go to profile completion if not complete, otherwise dashboard
+      if (!profileComplete) {
+        return <Navigate to="/doctor/complete-profile" replace />;
+      }
+      return <Navigate to="/doctor/dashboard" replace />;
+    }
     if (user?.role === 'admin') return <Navigate to="/admin/dashboard" replace />;
     return <Navigate to="/patient/home" replace />;
   }
