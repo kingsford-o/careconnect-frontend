@@ -89,6 +89,11 @@ export default function OAuthCallbackPage() {
         resolvedRole = requestedRole;
       }
 
+      // Store the token for API calls
+      if (finalSession.access_token && typeof window !== 'undefined') {
+        localStorage.setItem('auth_token', finalSession.access_token);
+      }
+
       // Set auth state directly from the session (without relying on storage)
       useAuthStore.setState({
         user: {
@@ -104,11 +109,6 @@ export default function OAuthCallbackPage() {
         // Doctors start with incomplete profile
         profileComplete: resolvedRole !== 'doctor',
       });
-
-      // Store the token for future requests
-      if (finalSession.access_token && typeof window !== 'undefined') {
-        localStorage.setItem('auth_token', finalSession.access_token);
-      }
 
       // Wait a moment to ensure state is updated
       await new Promise(resolve => setTimeout(resolve, 100));

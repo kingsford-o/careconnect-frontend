@@ -39,6 +39,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
     console.log('Login form submitted', formData);
 
     if (loading) return;
@@ -74,12 +75,8 @@ export default function LoginPage() {
       if (userRole === 'admin') {
         defaultDestination = '/admin/dashboard';
       } else if (userRole === 'doctor') {
-        // Check if doctor profile is complete
-        if (result?.profileComplete === false) {
-          defaultDestination = '/doctor/complete-profile';
-        } else {
-          defaultDestination = '/doctor/dashboard';
-        }
+        // Doctors always go to profile completion after login
+        defaultDestination = '/doctor/complete-profile';
       }
 
       const destinationPath = destination?.pathname;
@@ -181,7 +178,7 @@ export default function LoginPage() {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="auth-form" noValidate>
+        <form onSubmit={handleSubmit} className="auth-form" noValidate action="#" method="post">
           {error && (
             <div className="error-alert">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

@@ -64,8 +64,11 @@ export const useAuthStore = create(
         const data = await response.json();
         console.log('✅ Signup success:', data);
 
-        // NO STORAGE - Don't store token for security
-        // Token will be used in memory only during session
+        // Store token for API calls
+        const token = data.session?.access_token || data.token;
+        if (token && typeof window !== 'undefined') {
+          localStorage.setItem('auth_token', token);
+        }
 
         set({
           user: {
@@ -117,8 +120,11 @@ export const useAuthStore = create(
         const data = await response.json();
         console.log('✅ Login success:', data);
 
-        // NO STORAGE - Don't store token for security
-        // Token will be used in memory only during session
+        // Store token for API calls
+        const token = data.session?.access_token || data.token;
+        if (token && typeof window !== 'undefined') {
+          localStorage.setItem('auth_token', token);
+        }
 
         set({
           user: {
@@ -161,8 +167,11 @@ export const useAuthStore = create(
           throw new Error(data.error || 'Admin authentication failed');
         }
 
-        // NO STORAGE - Don't store token for security
-        // Token will be used in memory only during session
+        // Store token for API calls
+        const token = data.session?.access_token || data.token;
+        if (token && typeof window !== 'undefined') {
+          localStorage.setItem('auth_token', token);
+        }
 
         set({
           user: data.user,
@@ -221,9 +230,8 @@ export const useAuthStore = create(
         const user = get().user;
         if (!user) throw new Error('User not authenticated');
 
-        // Get Supabase session for auth
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) throw new Error('No active session');
+        const token = localStorage.getItem('auth_token');
+        if (!token) throw new Error('No authentication token');
 
         const response = await fetch(
           `${import.meta.env.VITE_API_URL}/api/users/${user.id}/profile`,
@@ -231,7 +239,7 @@ export const useAuthStore = create(
             method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${session.access_token}`,
+              'Authorization': `Bearer ${token}`,
             },
             body: JSON.stringify(profileData),
           }
@@ -267,9 +275,8 @@ export const useAuthStore = create(
         const user = get().user;
         if (!user) throw new Error('User not authenticated');
 
-        // Get Supabase session for auth
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) throw new Error('No active session');
+        const token = localStorage.getItem('auth_token');
+        if (!token) throw new Error('No authentication token');
 
         const response = await fetch(
           `${import.meta.env.VITE_API_URL}/api/users/${user.id}/profile`,
@@ -277,7 +284,7 @@ export const useAuthStore = create(
             method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${session.access_token}`,
+              'Authorization': `Bearer ${token}`,
             },
             body: JSON.stringify(profileData),
           }

@@ -59,6 +59,7 @@ export default function SignupPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
 
     if (!validateForm()) {
       return;
@@ -116,7 +117,7 @@ export default function SignupPage() {
           <p>Join {role === 'doctor' ? 'as a healthcare provider' : 'as a patient'} and start your healthcare journey</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="auth-form">
+        <form onSubmit={handleSubmit} className="auth-form" noValidate action="#" method="post">
           {error && (
             <div className="error-alert">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
