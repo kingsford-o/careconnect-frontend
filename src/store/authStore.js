@@ -182,6 +182,9 @@ export const useAuthStore = create(
         });
 
         return data;
+      } catch (error) {
+        console.error('❌ Admin login exception:', error);
+        throw error;
       } finally {
         set({ loading: false });
       }

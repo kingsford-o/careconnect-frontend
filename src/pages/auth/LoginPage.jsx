@@ -68,24 +68,18 @@ export default function LoginPage() {
       console.log('🔐 Login result:', result);
 
       const userRole = result?.role || (role === 'admin' ? 'admin' : (role === 'doctor' ? 'doctor' : 'patient'));
-      const destination = location.state?.from;
-      let defaultDestination = '/patient/home';
       
-      // Doctors go to profile completion first
+      // Explicit role-based routing - NO AUTO-REDIRECTS
+      let targetDestination;
       if (userRole === 'admin') {
-        defaultDestination = '/admin/dashboard';
+        targetDestination = '/admin/dashboard';
       } else if (userRole === 'doctor') {
-        // Doctors always go to profile completion after login
-        defaultDestination = '/doctor/complete-profile';
+        targetDestination = '/doctor/complete-profile';
+      } else {
+        targetDestination = '/patient/home';
       }
 
-      const destinationPath = destination?.pathname;
-      const isValidDestination = destinationPath && destinationPath !== '/auth/login' && destinationPath !== '/login';
-      const targetDestination = isValidDestination
-        ? `${destinationPath}${destination.search || ''}${destination.hash || ''}`
-        : defaultDestination;
-
-      console.log('🔐 Navigating to:', targetDestination);
+      console.log('🔐 Navigating to:', targetDestination, 'for role:', userRole);
 
       navigate(targetDestination, { replace: true });
     } catch (err) {

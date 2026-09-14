@@ -74,14 +74,18 @@ export default function SignupPage() {
       // Pass role directly in form data
       await signup({ ...formData, role });
       
-      // Direct navigation based on role - bypass automatic routing
+      // Explicit role-based routing - NO AUTO-REDIRECTS
+      let targetDestination;
       if (role === 'doctor') {
-        navigate('/doctor/complete-profile', { replace: true });
+        targetDestination = '/doctor/complete-profile';
       } else if (role === 'admin') {
-        navigate('/admin/dashboard', { replace: true });
+        targetDestination = '/admin/dashboard';
       } else {
-        navigate('/patient/home', { replace: true });
+        targetDestination = '/patient/home';
       }
+
+      console.log('🔐 Navigating to:', targetDestination, 'for role:', role);
+      navigate(targetDestination, { replace: true });
     } catch (err) {
       setError(err.message || 'Signup failed');
     } finally {

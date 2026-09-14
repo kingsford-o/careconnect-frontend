@@ -113,16 +113,18 @@ export default function OAuthCallbackPage() {
       // Wait a moment to ensure state is updated
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Navigate based on role - doctors go to profile completion first
-      let destination = '/patient/home';
+      // Explicit role-based routing - NO AUTO-REDIRECTS
+      let targetDestination;
       if (resolvedRole === 'doctor') {
-        destination = '/doctor/complete-profile';
+        targetDestination = '/doctor/complete-profile';
       } else if (resolvedRole === 'admin') {
-        destination = '/admin/dashboard';
+        targetDestination = '/admin/dashboard';
+      } else {
+        targetDestination = '/patient/home';
       }
 
-      console.log('🔐 OAuth callback success, navigating to:', destination);
-      navigate(destination, { replace: true });
+      console.log('🔐 OAuth callback success, navigating to:', targetDestination, 'for role:', resolvedRole);
+      navigate(targetDestination, { replace: true });
     } catch (err) {
       console.error('❌ OAuth callback error:', err);
       setError(err.message || 'Authentication failed. Please try again.');

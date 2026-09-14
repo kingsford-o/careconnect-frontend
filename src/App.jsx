@@ -77,21 +77,18 @@ function ProtectedRoute({ component: Component, requiredRole }) {
   const isHydrated = useAuthStore(state => state.isHydrated);
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
   const user = useAuthStore(state => state.user);
-  const profileComplete = useAuthStore(state => state.profileComplete);
 
   if (loading || !isHydrated) return <LoadingFallback />;
   if (!isAuthenticated) return <Navigate to="/auth/login" state={{ from: location }} replace />;
+  
+  // Check role requirement
   if (requiredRole && user?.role !== requiredRole) {
-    if (user?.role === 'doctor') {
-      // Doctors go to profile completion if not complete, otherwise dashboard
-      if (!profileComplete) {
-        return <Navigate to="/doctor/complete-profile" replace />;
-      }
-      return <Navigate to="/doctor/dashboard" replace />;
-    }
+    // Redirect to appropriate dashboard based on actual role
+    if (user?.role === 'doctor') return <Navigate to="/doctor/dashboard" replace />;
     if (user?.role === 'admin') return <Navigate to="/admin/dashboard" replace />;
-    return <Navigate to="/patient/home" replace />;
+    if (user?.role === 'patient') return <Navigate to="/patient/home" replace />;
   }
+  
   return (
     <AppShell>
       <Component />
@@ -104,20 +101,16 @@ function GuestRoute({ component: Component }) {
   const isHydrated = useAuthStore(state => state.isHydrated);
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
   const user = useAuthStore(state => state.user);
-  const profileComplete = useAuthStore(state => state.profileComplete);
 
   if (loading || !isHydrated) return <LoadingFallback />;
+  
+  // If authenticated, redirect to appropriate dashboard
   if (isAuthenticated) {
-    if (user?.role === 'doctor') {
-      // Doctors go to profile completion if not complete, otherwise dashboard
-      if (!profileComplete) {
-        return <Navigate to="/doctor/complete-profile" replace />;
-      }
-      return <Navigate to="/doctor/dashboard" replace />;
-    }
+    if (user?.role === 'doctor') return <Navigate to="/doctor/dashboard" replace />;
     if (user?.role === 'admin') return <Navigate to="/admin/dashboard" replace />;
-    return <Navigate to="/patient/home" replace />;
+    if (user?.role === 'patient') return <Navigate to="/patient/home" replace />;
   }
+  
   return <Component />;
 }
 
@@ -130,15 +123,8 @@ function RootRoute() {
 
   if (loading || !isHydrated) return <LoadingFallback />;
 
-  // Completely disable auto-redirect for doctors - let explicit navigation handle it
-  // Only auto-redirect patients and admins
-  if (isAuthenticated) {
-    if (user?.role === 'patient') {
-      return <Navigate to="/patient/home" replace />;
-    } else if (user?.role === 'admin') {
-      return <Navigate to="/admin/dashboard" replace />;
-    }
-  }
+  // DISABLE ALL AUTO-REDIRECTS - let explicit navigation handle routing
+  // This prevents any role from being auto-redirected to wrong endpoint
   return <LandingPage />;
 }
 
