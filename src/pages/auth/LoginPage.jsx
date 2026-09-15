@@ -95,10 +95,9 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     try {
-      const destination = location.state?.from;
-      const googleRole = destination?.pathname?.startsWith('/patient/')
-        ? 'patient'
-        : role || 'patient';
+      // Use the current role from the form selector
+      const googleRole = role || 'patient';
+      console.log('🔐 Google sign-in with role:', googleRole);
       await signInWithGoogle(googleRole);
     } catch (error) {
       console.error('Google sign in error:', error);

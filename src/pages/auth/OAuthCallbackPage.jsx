@@ -55,6 +55,8 @@ export default function OAuthCallbackPage() {
       const urlParams = new URLSearchParams(window.location.search);
       const requestedRole = urlParams.get('role') || 'patient';
 
+      console.log('🔐 OAuth callback - requested role from URL:', requestedRole);
+
       // Try to call backend with timeout, but don't fail if unavailable
       try {
         const controller = new AbortController();
@@ -79,13 +81,14 @@ export default function OAuthCallbackPage() {
         if (response.ok) {
           const callbackData = await response.json();
           resolvedRole = (callbackData.role || requestedRole || 'patient').toLowerCase();
+          console.log('🔐 Backend returned role:', resolvedRole);
         } else {
-          console.log('Backend callback failed, using local role');
+          console.log('Backend callback failed, using requested role:', requestedRole);
           resolvedRole = requestedRole;
         }
       } catch (fetchError) {
         // Backend unavailable - use local role from URL params
-        console.log('Backend unavailable, using local role from URL');
+        console.log('Backend unavailable, using requested role from URL:', requestedRole);
         resolvedRole = requestedRole;
       }
 
@@ -123,7 +126,7 @@ export default function OAuthCallbackPage() {
         targetDestination = '/patient/home';
       }
 
-      console.log('🔐 OAuth callback success, navigating to:', targetDestination, 'for role:', resolvedRole);
+      console.log('🔐 OAuth callback success, navigating to:', targetDestination, 'for resolved role:', resolvedRole);
       navigate(targetDestination, { replace: true });
     } catch (err) {
       console.error('❌ OAuth callback error:', err);
