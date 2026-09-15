@@ -62,24 +62,27 @@ export default function LoginPage() {
         if (!formData.email || !formData.password) {
           throw new Error('Please enter both email and password');
         }
+        // Force the role parameter to ensure it's passed correctly
         result = await login(formData.email.trim(), formData.password, role);
+        console.log('🔐 Login response role:', result?.role, 'Requested role:', role);
       }
 
       console.log('🔐 Login result:', result);
 
-      const userRole = result?.role || (role === 'admin' ? 'admin' : (role === 'doctor' ? 'doctor' : 'patient'));
+      // Use the role from the form, not the result - form role is more reliable
+      const targetRole = role;
       
       // Explicit role-based routing - NO AUTO-REDIRECTS
       let targetDestination;
-      if (userRole === 'admin') {
+      if (targetRole === 'admin') {
         targetDestination = '/admin/dashboard';
-      } else if (userRole === 'doctor') {
+      } else if (targetRole === 'doctor') {
         targetDestination = '/doctor/complete-profile';
       } else {
         targetDestination = '/patient/home';
       }
 
-      console.log('🔐 Navigating to:', targetDestination, 'for role:', userRole);
+      console.log('🔐 Navigating to:', targetDestination, 'for role:', targetRole);
 
       navigate(targetDestination, { replace: true });
     } catch (err) {
