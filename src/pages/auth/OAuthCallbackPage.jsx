@@ -1,10 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import supabase from '../../lib/supabaseClient';
 import { useAuthStore } from '../../store/authStore';
 
 export default function OAuthCallbackPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const processingRef = useRef(false);
@@ -19,6 +20,12 @@ export default function OAuthCallbackPage() {
   const handleOAuthCallback = async () => {
     try {
       setLoading(true);
+
+      // Check if we're in a Router context
+      if (!navigate) {
+        console.error('❌ useNavigate not available - page not in Router context');
+        throw new Error('Navigation not available');
+      }
 
       const hash = window.location.hash || '';
       const hashParams = new URLSearchParams(hash.replace(/^#/, ''));
@@ -132,7 +139,13 @@ export default function OAuthCallbackPage() {
       }
 
       console.log('🔐 OAuth callback success, navigating to:', targetDestination, 'for resolved role:', resolvedRole);
-      navigate(targetDestination, { replace: true });
+      
+      // Use window.location.href if navigate is not available (outside Router context)
+      if (typeof navigate === 'function') {
+        navigate(targetDestination, { replace: true });
+      } else {
+        window.location.href = targetDestination;
+      }
     } catch (err) {
       console.error('❌ OAuth callback error:', err);
       setError(err.message || 'Authentication failed. Please try again.');
