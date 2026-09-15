@@ -193,10 +193,11 @@ export const useAuthStore = create(
     signInWithGoogle: async (role = 'patient') => {
       set({ loading: true });
       try {
+        console.log('🔐 Starting Google OAuth with role:', role);
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: `${window.location.origin}/auth/callback?role=${role}`,
+            redirectTo: `${window.location.origin}/auth/callback?role=${encodeURIComponent(role)}`,
             skipBrowserRedirect: false,
           },
         });

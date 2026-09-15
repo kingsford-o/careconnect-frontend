@@ -53,9 +53,24 @@ export default function OAuthCallbackPage() {
       }
 
       const urlParams = new URLSearchParams(window.location.search);
-      const requestedRole = urlParams.get('role') || 'patient';
+      let requestedRole = urlParams.get('role');
+      
+      // If no role in search params, check hash params
+      if (!requestedRole) {
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+        requestedRole = hashParams.get('role');
+      }
+      
+      // Default to patient only if absolutely no role found
+      if (!requestedRole) {
+        console.warn('⚠️ No role found in URL, defaulting to patient');
+        requestedRole = 'patient';
+      }
 
+      console.log('🔐 OAuth callback - URL search params:', window.location.search);
+      console.log('🔐 OAuth callback - URL hash:', window.location.hash);
       console.log('🔐 OAuth callback - requested role from URL:', requestedRole);
+      console.log('🔐 OAuth callback - all URL params:', Object.fromEntries(urlParams));
 
       // Try to call backend with timeout, but don't fail if unavailable
       try {
