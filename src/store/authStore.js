@@ -194,10 +194,16 @@ export const useAuthStore = create(
       set({ loading: true });
       try {
         console.log('🔐 Starting Google OAuth with role:', role);
+        
+        // Store role in sessionStorage before OAuth redirect
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('oauth_role', role);
+        }
+        
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: `${window.location.origin}/auth/callback?role=${encodeURIComponent(role)}`,
+            redirectTo: `${window.location.origin}/auth/callback`,
             skipBrowserRedirect: false,
           },
         });

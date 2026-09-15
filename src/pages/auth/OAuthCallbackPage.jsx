@@ -52,25 +52,15 @@ export default function OAuthCallbackPage() {
         throw new Error('Failed to establish session');
       }
 
-      const urlParams = new URLSearchParams(window.location.search);
-      let requestedRole = urlParams.get('role');
-      
-      // If no role in search params, check hash params
-      if (!requestedRole) {
-        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-        requestedRole = hashParams.get('role');
-      }
-      
-      // Default to patient only if absolutely no role found
-      if (!requestedRole) {
-        console.warn('⚠️ No role found in URL, defaulting to patient');
-        requestedRole = 'patient';
+      // Get role from sessionStorage (stored before OAuth redirect)
+      let requestedRole = 'patient';
+      if (typeof window !== 'undefined') {
+        requestedRole = sessionStorage.getItem('oauth_role') || 'patient';
+        // Clear the stored role after use
+        sessionStorage.removeItem('oauth_role');
       }
 
-      console.log('🔐 OAuth callback - URL search params:', window.location.search);
-      console.log('🔐 OAuth callback - URL hash:', window.location.hash);
-      console.log('🔐 OAuth callback - requested role from URL:', requestedRole);
-      console.log('🔐 OAuth callback - all URL params:', Object.fromEntries(urlParams));
+      console.log('🔐 OAuth callback - requested role from sessionStorage:', requestedRole);
 
       // Try to call backend with timeout, but don't fail if unavailable
       try {
